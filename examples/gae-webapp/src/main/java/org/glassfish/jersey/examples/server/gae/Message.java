@@ -37,38 +37,59 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.jersey.examples.server.gae;
 
-package org.glassfish.jersey.server.gae.internal;
-
-import org.glassfish.jersey.spi.RuntimeThreadProvider;
-
-import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
+import java.util.Date;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * This class implements Jersey's SPI {@link RuntimeThreadProvider} to get {@link ThreadFactory} instance by
- * GAE specific {@code ThreadFactory} provider - {@link com.google.appengine.api.ThreadManager}.
+ * Chat message JAXB POJO.
  *
- * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
-public class GaeRuntimeThreadProvider implements RuntimeThreadProvider {
+@XmlRootElement
+public class Message {
 
-    private static final Logger LOGGER = Logger.getLogger(GaeRuntimeThreadProvider.class.getName());
+    public String author = "";
+    public String message = "";
+    public long time = new Date().getTime();
 
-    @Override
-    public ThreadFactory getRequestThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getRequestThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getRequestThreadFactory");
-        return com.google.appengine.api.ThreadManager.currentRequestThreadFactory();
+    public Message(String author, String message) {
+        this.author = author;
+        this.message = message;
+    }
+
+    public Message() {
     }
 
     @Override
-    public ThreadFactory getBackgroundThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getBackgroundThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getBackgroundThreadFactory");
-        return com.google.appengine.api.ThreadManager.backgroundThreadFactory();
+    public String toString() {
+        return "Message{" + "author=" + author + ", message=" + message + ", time=" + time + '}';
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Message other = (Message) obj;
+        if ((this.author == null) ? (other.author != null) : !this.author.equals(other.author)) {
+            return false;
+        }
+        if ((this.message == null) ? (other.message != null) : !this.message.equals(other.message)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 47 * hash + (this.author != null ? this.author.hashCode() : 0);
+        hash = 47 * hash + (this.message != null ? this.message.hashCode() : 0);
+        return hash;
+    }
 }

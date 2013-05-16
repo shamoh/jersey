@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -40,21 +40,56 @@
     holder.
 
 -->
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-         id="jersey-test1" version="3.0">
+<html>
+<head>
+    <title>Google App Engine integration webapp Example</title>
+    <style type="text/css"><!--
+    .figure {
+        text-align: center;
+        margin: 20px
+    }
 
-    <servlet>
-        <servlet-name>Rest API MyApplication</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>org.glassfish.jersey.examples.server.gae.MyApplication</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>Rest API MyApplication</servlet-name>
-        <url-pattern>/base/*</url-pattern>
-    </servlet-mapping>
-</web-app>
+    .cliSample {
+        background-color: lightgray
+    }
+
+    --></style>
+</head>
+<body>
+<h1>Google App Engine integration webapp Example</h1>
+
+<p>TODO</p>
+
+<h2>Contents</h2>
+
+<p>The mapping of the URI path space is presented in the following table:</p>
+<table border="1">
+    <tr>
+        <th>URI path</th>
+        <th>Resource class</th>
+        <th>HTTP methods</th>
+    </tr>
+
+    <tr>
+        <td>/helloworld</td>
+        <td>HelloWorldResource</td>
+        <td>GET</td>
+    </tr>
+
+</table>
+
+<p>Application is configured by using web.xml, which registers <a href="#addLinkToSpecJavadocWhenReady">javax.ws.rs.core.Application</a>
+    descendant to get
+    classes and singletons from it (see class MyApplication).</p>
+
+<h2>Running the Example</h2>
+
+<p>Run the example as follows:</p>
+<blockquote><pre>
+mvn clean compile appengine:devserver</pre>
+</blockquote>
+<p>This starts GAE dev server with this example. HelloWorldResource should
+    be available at <a href="http://localhost:8080/base/helloworld">http://localhost:8080/base/helloworld</a>
+</p>
+</body>
+</html>

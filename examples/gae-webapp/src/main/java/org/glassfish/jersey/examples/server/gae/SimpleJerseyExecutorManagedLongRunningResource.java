@@ -37,38 +37,43 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.jersey.examples.server.gae;
 
-package org.glassfish.jersey.server.gae.internal;
-
-import org.glassfish.jersey.spi.RuntimeThreadProvider;
-
-import java.util.concurrent.ThreadFactory;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+
+import org.glassfish.jersey.server.ManagedAsync;
+
 /**
- * This class implements Jersey's SPI {@link RuntimeThreadProvider} to get {@link ThreadFactory} instance by
- * GAE specific {@code ThreadFactory} provider - {@link com.google.appengine.api.ThreadManager}.
+ * Example of a simple resource with a long-running operation executed in a
+ * custom Jersey container request processing thread.
  *
- * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
-public class GaeRuntimeThreadProvider implements RuntimeThreadProvider {
+@Path("managedasync/longrunning")
+@Produces("text/plain")
+public class SimpleJerseyExecutorManagedLongRunningResource {
 
-    private static final Logger LOGGER = Logger.getLogger(GaeRuntimeThreadProvider.class.getName());
+    public static final String NOTIFICATION_RESPONSE = "Hello async world!";
+    //
+    private static final Logger LOGGER = Logger.getLogger(SimpleJerseyExecutorManagedLongRunningResource.class.getName());
+    private static final int SLEEP_TIME_IN_MILLIS = 1000;
 
-    @Override
-    public ThreadFactory getRequestThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getRequestThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getRequestThreadFactory");
-        return com.google.appengine.api.ThreadManager.currentRequestThreadFactory();
+    @GET
+    @ManagedAsync
+    public void longGet(@Suspended final AsyncResponse ar, @QueryParam("id") int requestId) {
+        try {
+            Thread.sleep(SLEEP_TIME_IN_MILLIS);
+        } catch (InterruptedException ex) {
+            LOGGER.log(Level.SEVERE, "Response processing interrupted", ex);
+        }
+        ar.resume(requestId + " - " + NOTIFICATION_RESPONSE);
     }
-
-    @Override
-    public ThreadFactory getBackgroundThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getBackgroundThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getBackgroundThreadFactory");
-        return com.google.appengine.api.ThreadManager.backgroundThreadFactory();
-    }
-
 }

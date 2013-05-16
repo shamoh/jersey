@@ -39,21 +39,25 @@
  */
 package org.glassfish.jersey.examples.server.gae;
 
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.gae.internal.GaeFeature;
+
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 @ApplicationPath("/")
-public class MyApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-        final Set<Class<?>> classes = new HashSet<Class<?>>();
-        // register root resource
-        classes.add(HelloWorldResource.class);
-        return classes;
+public class MyApplication extends ResourceConfig {
+
+    public MyApplication() {
+        // GAE integration
+        register(GaeFeature.class);
+
+        // app resources
+        register(HelloWorldResource.class);
+        register(ChatResource.class);
+        register(SimpleJerseyExecutorManagedLongRunningResource.class);
     }
+
 }

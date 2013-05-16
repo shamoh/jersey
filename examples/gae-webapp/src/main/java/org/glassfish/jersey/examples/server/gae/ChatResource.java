@@ -37,38 +37,44 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.jersey.examples.server.gae;
 
-package org.glassfish.jersey.server.gae.internal;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
-import org.glassfish.jersey.spi.RuntimeThreadProvider;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
+import org.glassfish.jersey.server.ManagedAsync;
 
 /**
- * This class implements Jersey's SPI {@link RuntimeThreadProvider} to get {@link ThreadFactory} instance by
- * GAE specific {@code ThreadFactory} provider - {@link com.google.appengine.api.ThreadManager}.
+ * Example of a simple fire&forget point-to-point messaging resource.
  *
- * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * This version of the messaging resource does not block when POSTing a new message.
+ *
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
-public class GaeRuntimeThreadProvider implements RuntimeThreadProvider {
+@Path("chat")
+@Produces("application/json")
+public class ChatResource {
 
-    private static final Logger LOGGER = Logger.getLogger(GaeRuntimeThreadProvider.class.getName());
+    private static final BlockingQueue<AsyncResponse> suspended = new ArrayBlockingQueue<AsyncResponse>(5);
 
-    @Override
-    public ThreadFactory getRequestThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getRequestThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getRequestThreadFactory");
-        return com.google.appengine.api.ThreadManager.currentRequestThreadFactory();
+    @GET
+    @ManagedAsync
+    public void getMessage(@Suspended final AsyncResponse ar) throws InterruptedException {
+        suspended.put(ar);
     }
 
-    @Override
-    public ThreadFactory getBackgroundThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getBackgroundThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getBackgroundThreadFactory");
-        return com.google.appengine.api.ThreadManager.backgroundThreadFactory();
+    @POST
+    @ManagedAsync
+    public String postMessage(final Message message) throws InterruptedException {
+        final AsyncResponse asyncResponse = suspended.take();
+        asyncResponse.resume(message);
+        return "Sent!";
     }
-
 }

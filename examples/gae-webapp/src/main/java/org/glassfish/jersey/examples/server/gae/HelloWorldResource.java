@@ -39,9 +39,15 @@
  */
 package org.glassfish.jersey.examples.server.gae;
 
+import org.glassfish.jersey.server.internal.BackgroundScheduler;
+import org.glassfish.jersey.spi.RuntimeThreadProvider;
+import org.jvnet.hk2.annotations.Optional;
+
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -49,10 +55,19 @@ import javax.ws.rs.Produces;
 @Path("helloworld")
 public class HelloWorldResource {
 
+    @Inject @Optional
+    private RuntimeThreadProvider runtimeThreadProvider;
+
+    @Inject @BackgroundScheduler
+    private ScheduledExecutorService scheduledExecutorService;
+
     @GET
-    @Produces("text/plain")
-    public String getHello() {
-        return "Hello World!";
+    @Produces("application/xml")
+    public Message getHello() {
+        System.out.println("runtimeThreadProvider   : " + runtimeThreadProvider);
+        System.out.println("scheduledExecutorService: " + scheduledExecutorService);
+
+        return new Message("iJersey", "Hello World!");
     }
 
 }

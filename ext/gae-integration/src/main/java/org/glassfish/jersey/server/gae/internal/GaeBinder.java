@@ -40,35 +40,21 @@
 
 package org.glassfish.jersey.server.gae.internal;
 
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.spi.RuntimeThreadProvider;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
+import javax.inject.Singleton;
 
 /**
- * This class implements Jersey's SPI {@link RuntimeThreadProvider} to get {@link ThreadFactory} instance by
- * GAE specific {@code ThreadFactory} provider - {@link com.google.appengine.api.ThreadManager}.
+ * TODO
  *
- * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * @author Michal Gajdos (michal.gajdos at oracle.com)
  */
-public class GaeRuntimeThreadProvider implements RuntimeThreadProvider {
-
-    private static final Logger LOGGER = Logger.getLogger(GaeRuntimeThreadProvider.class.getName());
+public class GaeBinder extends AbstractBinder {
 
     @Override
-    public ThreadFactory getRequestThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getRequestThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getRequestThreadFactory");
-        return com.google.appengine.api.ThreadManager.currentRequestThreadFactory();
-    }
-
-    @Override
-    public ThreadFactory getBackgroundThreadFactory() {
-        System.out.println("***");
-        System.out.println("*** getBackgroundThreadFactory ***");
-        LOGGER.entering(this.getClass().getName(), "getBackgroundThreadFactory");
-        return com.google.appengine.api.ThreadManager.backgroundThreadFactory();
+    protected void configure() {
+        bind(GaeRuntimeThreadProvider.class).to(RuntimeThreadProvider.class).in(Singleton.class);
     }
 
 }
