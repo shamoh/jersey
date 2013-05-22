@@ -129,7 +129,7 @@ public class ProviderBinderTest {
         List<org.glassfish.hk2.utilities.Binder> binderList = Lists.newArrayList(binders);
 
         binderList.add(new ContextInjectionResolver.Binder());
-        binderList.add(new MessagingBinders.MessageBodyProviders());
+        binderList.add(new MessagingBinders.MessageBodyProviders(false));
 
         return binderList.toArray(new org.glassfish.hk2.utilities.Binder[binderList.size()]);
     }

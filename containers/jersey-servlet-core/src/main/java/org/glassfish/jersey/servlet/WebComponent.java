@@ -51,6 +51,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -65,9 +66,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.internal.ServiceFinderBinder;
 import org.glassfish.jersey.internal.inject.Providers;
 import org.glassfish.jersey.internal.inject.ReferencingFactory;
+import org.glassfish.jersey.internal.util.PropertiesHelper;
 import org.glassfish.jersey.internal.util.ReflectionHelper;
 import org.glassfish.jersey.internal.util.collection.Ref;
 import org.glassfish.jersey.internal.util.collection.Value;
@@ -100,6 +103,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  * @author Jakub Podlesak (jakub.podlesak at oracle.com)
  * @author Marek Potociar (marek.potociar at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class WebComponent {
 
@@ -149,6 +153,15 @@ public class WebComponent {
     }
 
     private class WebComponentBinder extends AbstractBinder {
+
+        /** Enable/disable META-INF/services lookup.
+         * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
+        boolean disableMetainfServicesLookup;
+
+        private WebComponentBinder(boolean disableMetainfServicesLookup) {
+            this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+        }
+
         @Override
         protected void configure() {
             bindFactory(HttpServletRequestReferencingFactory.class).to(HttpServletRequest.class).in(PerLookup.class);
@@ -220,7 +233,9 @@ public class WebComponent {
                     //not used
                 }
             }).to(WebConfig.class).in(Singleton.class);
-            install(new ServiceFinderBinder<AsyncContextDelegateProvider>(AsyncContextDelegateProvider.class));
+            if ( disableMetainfServicesLookup == false ) {
+                install(new ServiceFinderBinder<AsyncContextDelegateProvider>(AsyncContextDelegateProvider.class));
+            }
         }
     }
 
@@ -258,7 +273,12 @@ public class WebComponent {
         if (resourceConfig == null) {
             resourceConfig = createResourceConfig(webConfig);
         }
-        resourceConfig.register(new WebComponentBinder());
+
+        // ServiceFinderBinder
+        boolean disableMetainfServicesLookup = PropertiesHelper.getValue(resourceConfig.getProperties(), RuntimeType.SERVER,
+                CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, Boolean.FALSE, Boolean.class);
+
+        resourceConfig.register(new WebComponentBinder(disableMetainfServicesLookup));
         this.appHandler = new ApplicationHandler(resourceConfig);
         this.asyncExtensionDelegate = getAsyncExtensionDelegate();
         this.forwardOn404 = webConfig.getConfigType().equals(WebConfig.ConfigType.FilterConfig) &&

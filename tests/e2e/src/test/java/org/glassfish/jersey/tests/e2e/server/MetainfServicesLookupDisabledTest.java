@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,39 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.jersey.tests.e2e.server;
 
-package org.glassfish.jersey.server.validation;
-
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
-
-import org.glassfish.jersey.internal.util.PropertiesHelper;
+import org.glassfish.jersey.message.internal.AbstractMessageReaderWriterProvider;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
-import org.glassfish.jersey.server.validation.internal.ValidationExceptionMapper;
-import org.glassfish.jersey.server.validation.internal.ValidationBinder;
-import org.glassfish.jersey.server.validation.internal.ValidationErrorMessageBodyWriter;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /**
- * {@code ValidationFeature} used to add Bean Validation (JSR-349) support to the server.
-
- * This Feature is automatically registered just in case ValidationAutoDiscoverable is used, i.e. \
- *          AutoDiscoverable is NOT disabled by CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE properties!!!
+ * Property {@link ServerProperties#METAINF_SERVICES_LOOKUP_DISABLE} IS set.
  *
- * @author Michal Gajdos (michal.gajdos at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public final class ValidationFeature implements Feature {
+public class MetainfServicesLookupDisabledTest extends AbstractDisableMetainfServicesLookupTest {
+
+    @Test
+    public void testGet() throws Exception {
+        testGet(500, 415);
+    }
+
+
+    //
+    // JerseyTest
+    //
 
     @Override
-    public boolean configure(final FeatureContext context) {
-        final Object disableProperty = context.getConfiguration().getProperty(ServerProperties.BV_FEATURE_DISABLE);
-        if (PropertiesHelper.isProperty(disableProperty)) {
-            return false;
-        }
+    protected Application configure() {
+        ResourceConfig resourceConfig = (ResourceConfig)super.configure();
+        resourceConfig.property(ServerProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
 
-        context.register(new ValidationBinder());
-        context.register(ValidationExceptionMapper.class);
-        context.register(ValidationErrorMessageBodyWriter.class);
-
-        return true;
+        return resourceConfig;
     }
+
 }

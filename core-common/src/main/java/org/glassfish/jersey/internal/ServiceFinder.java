@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -601,7 +601,17 @@ public final class ServiceFinder<T> implements Iterable<T> {
             String cn = nextName;
             nextName = null;
             try {
-                return ReflectionHelper.classForNameWithException(cn, loader);
+                Class<T> tClass = ReflectionHelper.classForNameWithException(cn, loader);
+
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    String className = null;
+                    if (tClass != null) {
+                        className = tClass.getName();
+                    }
+                    LOGGER.log(Level.FINEST, LocalizationMessages.LOADING_NEXT_CLASS(className));
+                }
+
+                return tClass;
             } catch (ClassNotFoundException ex) {
                 fail(serviceName,
                         LocalizationMessages.PROVIDER_NOT_FOUND(cn, service));
@@ -722,6 +732,13 @@ public final class ServiceFinder<T> implements Iterable<T> {
                 throw new NoSuchElementException();
             }
             nextName = null;
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                String className = null;
+                if (t != null) {
+                    className = t.getClass().getName();
+                }
+                LOGGER.log(Level.FINEST, LocalizationMessages.LOADING_NEXT_OBJECT(className));
+            }
             return t;
         }
     }

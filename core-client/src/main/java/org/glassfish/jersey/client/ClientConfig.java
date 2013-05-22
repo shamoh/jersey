@@ -346,10 +346,14 @@ public class ClientConfig implements Configurable<ClientConfig>, Configuration {
              */
             markAsShared();
 
-            final ServiceLocator locator = Injections.createLocator(new ClientBinder());
-            locator.setDefaultClassAnalyzerName(JerseyClassAnalyzer.NAME);
-
             final CommonConfig runtimeConfig = new CommonConfig(this.commonConfig);
+
+            // ServiceFinderBinder
+            boolean disableMetainfServicesLookup = PropertiesHelper.getValue(runtimeConfig.getProperties(), RuntimeType.CLIENT,
+                    CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, Boolean.FALSE, Boolean.class);
+
+            final ServiceLocator locator = Injections.createLocator(new ClientBinder(disableMetainfServicesLookup));
+            locator.setDefaultClassAnalyzerName(JerseyClassAnalyzer.NAME);
 
             // AutoDiscoverable.
             if (!PropertiesHelper.getValue(runtimeConfig.getProperties(), RuntimeType.CLIENT,

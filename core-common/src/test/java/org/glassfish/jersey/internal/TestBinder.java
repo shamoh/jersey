@@ -81,7 +81,7 @@ public class TestBinder extends AbstractBinder {
                 new JerseyErrorService.Binder(),
                 new ContextInjectionResolver.Binder(),
                 new JerseyClassAnalyzer.Binder(),
-                new MessagingBinders.MessageBodyProviders(),
+                new MessagingBinders.MessageBodyProviders(false),
                 new MessageBodyFactory.Binder(),
                 new ExceptionMapperFactory.Binder(),
                 new ContextResolverFactory.Binder(),

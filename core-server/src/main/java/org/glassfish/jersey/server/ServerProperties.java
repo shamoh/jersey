@@ -387,6 +387,20 @@ public final class ServerProperties {
     public static final String RESOURCE_VALIDATION_IGNORE_ERRORS =
             "jersey.config.server.resource.validation.ignoreErrors";
 
+    /**
+     * If {@code true} then disable META-INF/services lookup globally on server.
+     * <p>
+     * By default Jersey lookups SPI implementations described by META-INF/services/* files.
+     * Then you can register appropriate provider classes by {@link javax.ws.rs.core.Application}.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     *
+     * @see org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE
+     */
+    public static final String METAINF_SERVICES_LOOKUP_DISABLE = CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE + ".server";
+
     private ServerProperties() {
         // prevents instantiation
     }

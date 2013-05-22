@@ -88,8 +88,13 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  * Server injection binder.
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
+ * @todo Move this class to the internal package
  */
 public class ServerBinder extends AbstractBinder {
+
+    /** Enable/disable META-INF/services lookup.
+     * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
+    private final boolean disableMetainfServicesLookup;
 
     private static class RequestContextInjectionFactory extends ReferencingFactory<ContainerRequest> {
         @Inject
@@ -104,6 +109,10 @@ public class ServerBinder extends AbstractBinder {
         }
     }
 
+    public ServerBinder(boolean disableMetainfServicesLookup) {
+        this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+    }
+
     @Override
     protected void configure() {
         install(new RequestScope.Binder(), // must go first as it registers the request scope instance.
@@ -112,7 +121,7 @@ public class ServerBinder extends AbstractBinder {
                 new ContextInjectionResolver.Binder(),
                 new ParameterInjectionBinder(),
                 new JerseyClassAnalyzer.Binder(),
-                new MessagingBinders.MessageBodyProviders(),
+                new MessagingBinders.MessageBodyProviders(disableMetainfServicesLookup),
                 new MessageBodyFactory.Binder(),
                 new ExceptionMapperFactory.Binder(),
                 new ContextResolverFactory.Binder(),
@@ -122,11 +131,15 @@ public class ServerBinder extends AbstractBinder {
                 new ResourceModelBinder(),
                 new RuntimeExecutorsBinder(),
                 new RouterBinder(),
-                new ServiceFinderBinder<ContainerProvider>(ContainerProvider.class),
                 new CloseableServiceBinder(),
                 new JerseyResourceContext.Binder(),
-                new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class),
                 new MappableExceptionWrapperInterceptor.Binder());
+        //??? is original order of Binder instances in install method above important?!!!
+        if ( disableMetainfServicesLookup == false ) {
+            install(new ServiceFinderBinder<ContainerProvider>(ContainerProvider.class),
+                    new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class));
+
+        }
 
         // Request/Response injection interfaces
         bindFactory(ReferencingFactory.<Request>referenceFactory()).to(new TypeLiteral<Ref<Request>>() {

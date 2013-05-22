@@ -109,6 +109,18 @@ public final class CommonProperties {
     public static final String OUTBOUND_CONTENT_LENGTH_BUFFER = "jersey.config.contentLength.buffer";
 
     /**
+     * If {@code true} then disable META-INF/services lookup globally on client/server.
+     * <p>
+     * By default Jersey lookups SPI implementations described by META-INF/services/* files.
+     * Then you can register appropriate provider classes by {@link javax.ws.rs.core.Application}.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
+    public static final String METAINF_SERVICES_LOOKUP_DISABLE = "jersey.config.disableMetainfServicesLookup";
+
+    /**
      * Prevent instantiation.
      */
     private CommonProperties() {

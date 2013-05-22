@@ -87,7 +87,7 @@ public class JaxrsProvidersTest {
     @Test
     public void testProviders() throws Exception {
         final ServiceLocator locator = Injections.createLocator(new ContextInjectionResolver.Binder(), new TestBinder(),
-                new MessagingBinders.MessageBodyProviders(), new Binder());
+                new MessagingBinders.MessageBodyProviders(false), new Binder());
 
         TestBinder.initProviders(locator);
         RequestScope scope = locator.getService(RequestScope.class);

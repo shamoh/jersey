@@ -68,6 +68,14 @@ public class MessagingBinders {
      */
     public static class MessageBodyProviders extends AbstractBinder {
 
+        /** Enable/disable META-INF/services lookup.
+         * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
+        private boolean disableMetainfServicesLookup;
+
+        public MessageBodyProviders(boolean disableMetainfServicesLookup) {
+            this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+        }
+
         @Override
         protected void configure() {
 
@@ -107,21 +115,22 @@ public class MessagingBinders {
              * TODO: com.sun.jersey.core.impl.provider.entity.EntityHolderReader
              */
 
-            install(new ServiceFinderBinder<MessageBodyReader>(MessageBodyReader.class));
-
             // Message body writers
             bind(StreamingOutputProvider.class).to(MessageBodyWriter.class).in(Singleton.class);
             bind(SourceProvider.SourceWriter.class).to(MessageBodyWriter.class).in(Singleton.class);
-
-            install(new ServiceFinderBinder<MessageBodyWriter>(MessageBodyWriter.class));
-
-            install(new ServiceFinderBinder<HeaderDelegateProvider>(HeaderDelegateProvider.class));
 
             // XML factory injection points
             bindFactory(DocumentBuilderFactoryInjectionProvider.class).to(DocumentBuilderFactory.class).in(PerThread.class);
             bindFactory(SaxParserFactoryInjectionProvider.class).to(SAXParserFactory.class).in(PerThread.class);
             bindFactory(XmlInputFactoryInjectionProvider.class).to(XMLInputFactory.class).in(PerThread.class);
             bindFactory(TransformerFactoryInjectionProvider.class).to(TransformerFactory.class).in(PerThread.class);
+
+            //??? is original order of Binder instances in install method above important?!!!
+            if ( disableMetainfServicesLookup == false ) {
+                install(new ServiceFinderBinder<MessageBodyReader>(MessageBodyReader.class),
+                        new ServiceFinderBinder<MessageBodyWriter>(MessageBodyWriter.class),
+                        new ServiceFinderBinder<HeaderDelegateProvider>(HeaderDelegateProvider.class));
+            }
         }
 
         private <T extends MessageBodyReader & MessageBodyWriter> void bindSingletonWorker(Class<T> worker) {

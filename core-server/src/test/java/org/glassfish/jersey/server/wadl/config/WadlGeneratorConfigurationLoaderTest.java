@@ -84,7 +84,7 @@ public class WadlGeneratorConfigurationLoaderTest {
         resourceConfig.property(ServerProperties.WADL_GENERATOR_CONFIG,
                 MyWadlGeneratorConfig.class.getName());
 
-        final ServiceLocator locator = Injections.createLocator(new ServerBinder());
+        final ServiceLocator locator = Injections.createLocator(new ServerBinder(false));
         final WadlGenerator wadlGenerator = WadlGeneratorConfigLoader.loadWadlGeneratorsFromConfig(resourceConfig.getProperties())
                 .createWadlGenerator(locator);
         Assert.assertEquals(MyWadlGenerator.class, wadlGenerator.getClass());
@@ -97,7 +97,7 @@ public class WadlGeneratorConfigurationLoaderTest {
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.property(ServerProperties.WADL_GENERATOR_CONFIG, config);
-        final ServiceLocator locator = Injections.createLocator(new ServerBinder());
+        final ServiceLocator locator = Injections.createLocator(new ServerBinder(false));
         final WadlGenerator wadlGenerator = WadlGeneratorConfigLoader.loadWadlGeneratorsFromConfig(resourceConfig.getProperties())
                 .createWadlGenerator(locator);
         Assert.assertTrue(wadlGenerator instanceof MyWadlGenerator);

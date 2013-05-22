@@ -101,7 +101,7 @@ public class ValidatorTest {
 
 
     private ServiceLocator createLocator() {
-        return Injections.createLocator(new ServerBinder());
+        return Injections.createLocator(new ServerBinder(false));
     }
 
     @Path("rootNonAmbigCtors")

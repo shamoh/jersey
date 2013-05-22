@@ -73,6 +73,10 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  */
 class ClientBinder extends AbstractBinder {
 
+    /** Enable/disable META-INF/services lookup.
+     * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
+    private final boolean disableMetainfServicesLookup;
+
     private static class RequestContextInjectionFactory extends ReferencingFactory<ClientRequest> {
         @Inject
         public RequestContextInjectionFactory(Provider<Ref<ClientRequest>> referenceFactory) {
@@ -99,18 +103,26 @@ class ClientBinder extends AbstractBinder {
         }
     }
 
+
+    ClientBinder(boolean disableMetainfServicesLookup) {
+        this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+    }
+
     @Override
     protected void configure() {
         install(new RequestScope.Binder(), // must go first as it registers the request scope instance.
                 new JerseyErrorService.Binder(),
                 new ContextInjectionResolver.Binder(),
                 new JerseyClassAnalyzer.Binder(),
-                new MessagingBinders.MessageBodyProviders(),
+                new MessagingBinders.MessageBodyProviders(disableMetainfServicesLookup),
                 new MessagingBinders.HeaderDelegateProviders(),
                 new MessageBodyFactory.Binder(),
                 new ContextResolverFactory.Binder(),
-                new JaxrsProviders.Binder(),
-                new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class));
+                new JaxrsProviders.Binder());
+        //??? is original order of Binder instances in install method above important?!!!
+        if ( disableMetainfServicesLookup == false ) {
+            install(new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class));
+        }
 
         bindFactory(ReferencingFactory.<ClientConfig>referenceFactory()).to(new TypeLiteral<Ref<ClientConfig>>() {
         }).in(RequestScoped.class);

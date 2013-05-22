@@ -211,6 +211,20 @@ public final class ClientProperties {
      */
     public static final String MOXY_JSON_FEATURE_DISABLE = CommonProperties.MOXY_JSON_FEATURE_DISABLE + ".client";
 
+    /**
+     * If {@code true} then disable META-INF/services lookup globally on client.
+     * <p>
+     * By default Jersey lookups SPI implementations described by META-INF/services/* files.
+     * Then you can register appropriate provider classes by {@link javax.ws.rs.core.Application}.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     *
+     * @see org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE
+     */
+    public static final String METAINF_SERVICES_LOOKUP_DISABLE = CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE + ".client";
+
     private ClientProperties() {
         // prevents instantiation
     }

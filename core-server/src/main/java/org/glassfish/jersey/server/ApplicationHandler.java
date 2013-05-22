@@ -156,6 +156,9 @@ import com.google.common.util.concurrent.AbstractFuture;
 public final class ApplicationHandler {
 
     private static final Logger LOGGER = Logger.getLogger(ApplicationHandler.class.getName());
+
+    private static final boolean CONFIG_METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT = false;
+
     /**
      * Default dummy security context.
      */
@@ -239,7 +242,7 @@ public final class ApplicationHandler {
      *                              application handler.
      */
     public ApplicationHandler(Class<? extends Application> jaxrsApplicationClass) {
-        this.locator = Injections.createLocator(new ServerBinder(), new ApplicationBinder());
+        this.locator = Injections.createLocator(new ServerBinder(CONFIG_METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT), new ApplicationBinder());
         locator.setDefaultClassAnalyzerName(JerseyClassAnalyzer.NAME);
 
         this.application = createApplication(jaxrsApplicationClass);
@@ -261,7 +264,11 @@ public final class ApplicationHandler {
      *                    will be used to configure the new Jersey application handler.
      */
     public ApplicationHandler(Application application) {
-        this.locator = Injections.createLocator(new ServerBinder(), new ApplicationBinder());
+        // ServiceFinderBinder
+        boolean disableMetainfServicesLookup = PropertiesHelper.getValue(application.getProperties(), RuntimeType.SERVER,
+                CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, CONFIG_METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT, Boolean.class);
+
+        this.locator = Injections.createLocator(new ServerBinder(disableMetainfServicesLookup), new ApplicationBinder());
         locator.setDefaultClassAnalyzerName(JerseyClassAnalyzer.NAME);
 
         this.application = application;
@@ -549,10 +556,16 @@ public final class ApplicationHandler {
 
     private List<RankedProvider<ComponentProvider>> getRankedComponentProviders() throws ServiceConfigurationError {
         final List<RankedProvider<ComponentProvider>> result = new LinkedList<RankedProvider<ComponentProvider>>();
-        for (ComponentProvider provider : ServiceFinder.find(ComponentProvider.class)) {
-            result.add(new RankedProvider<ComponentProvider>(provider));
+
+        boolean disableMetainfServicesLookup = PropertiesHelper.getValue(application.getProperties(), RuntimeType.SERVER,
+                CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, CONFIG_METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT, Boolean.class);
+
+        if ( disableMetainfServicesLookup == false ) {
+            for (ComponentProvider provider : ServiceFinder.find(ComponentProvider.class)) {
+                result.add(new RankedProvider<ComponentProvider>(provider));
+            }
+            Collections.sort(result, new RankedComparator<ComponentProvider>(Order.DESCENDING));
         }
-        Collections.sort(result, new RankedComparator<ComponentProvider>(Order.DESCENDING));
         return result;
     }
 

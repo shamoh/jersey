@@ -307,7 +307,7 @@ public class WadlGeneratorConfigTest {
 
 
     private ServiceLocator getServiceLocator() {
-        return Injections.createLocator(new ServerBinder());
+        return Injections.createLocator(new ServerBinder(false));
     }
 
 }
