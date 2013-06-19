@@ -59,6 +59,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
 
+import org.glassfish.jersey.internal.ServiceFinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.servlet.ServletProperties;
@@ -67,6 +68,7 @@ import org.glassfish.jersey.servlet.init.internal.LocalizationMessages;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.glassfish.jersey.servlet.spi.JerseyServletContainerInitializerFilter;
 
 /*
  It is RECOMMENDED that implementations support the Servlet 3 framework
@@ -128,6 +130,22 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
         if (classes == null) {
             classes = Collections.emptySet();
         }
+        final JerseyServletContainerInitializerFilter[] jerseyServletContainerInitializerFilters =
+                ServiceFinder.find(JerseyServletContainerInitializerFilter.class).toArray();
+        //TODO log message: number of filters
+
+        for (int i = 0; i < jerseyServletContainerInitializerFilters.length; i++) {
+            //TODO log message: call preOnStartup on {filter}
+            classes = jerseyServletContainerInitializerFilters[i].preOnStartup(classes, sc);
+        }
+        classes = onStartupImpl(classes, sc);
+        for (int i = jerseyServletContainerInitializerFilters.length -1 ; i >= 0; i--) {
+            //TODO log message: call postOnStartup on {filter}
+            jerseyServletContainerInitializerFilters[i].postOnStartup(classes, sc);
+        }
+    }
+
+    private Set<Class<?>> onStartupImpl(Set<Class<?>> classes, ServletContext sc) throws ServletException {
         // first see if there are any application classes in the web app
         for (Class<? extends Application> a : getApplicationClasses(classes)) {
             final ServletRegistration appReg = sc.getServletRegistration(a.getName());
@@ -155,6 +173,8 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
 
         // check for javax.ws.rs.core.Application registration
         addServletWithDefaultConfiguration(sc, classes);
+
+        return classes;
     }
 
     private List<Registration> getInitParamDeclaredRegistrations(ServletContext sc, Class<? extends Application> a) {
