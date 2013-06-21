@@ -43,21 +43,30 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.util.Set;
 
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+
 /**
  * TODO
- * Extension point for ServletContainerInitializer without extending JerseyServletContainerInitializer
- * Post method in reverse order
- * @todo Use @Priority
+ * Extension point for {@link ServletContainerInitializer} without extending {@link JerseyServletContainerInitializer}
+ * Only one JerseyServletContainerInitializerFactory implementation in application is allowed. ?!?!?!
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public interface JerseyServletContainerInitializerFilter {
+public interface JerseyServletContainerInitializerFactory {
+
+    /**
+     * TODO
+     * @param servletContext
+     * @return
+     */
+    public boolean init(ServletContext servletContext) throws ServletException;
 
     /**
      * TODO
      * Method is invoked before {@link JerseyServletContainerInitializer#onStartup} implementation code.
      * @param classes Set can contain classes {@link javax.ws.rs.Path}, {@link Provider}, {@link Application},
-     *          {@link ApplicationPath}. It is never {@code null}, TODO or #preOnStartup of previous JerseyServletContainerInitializerFilter
+     *          {@link ApplicationPath}. It is never {@code null}, TODO or #preOnStartup of previous JerseyServletContainerInitializerFactory
      * @param servletContext instance from {@link JerseyServletContainerInitializer#onStartup} call
      * @return usually returns {@code classes}, but it is possible to modify set of processed classes.
      *      The value is then used in {@link JerseyServletContainerInitializer#onStartup} implementation code and
@@ -74,5 +83,13 @@ public interface JerseyServletContainerInitializerFilter {
      * @throws ServletException if an error has occurred
      */
     public void postOnStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException;
+
+    /**
+     * TODO
+     * Return instance of your {@link ServletContainer} extension or return null. You can also configure ResourceConfig.
+     *
+     * @return may return {@code null}
+     */
+    public ServletContainer createServletContainer(ResourceConfig resourceConfig);
 
 }
