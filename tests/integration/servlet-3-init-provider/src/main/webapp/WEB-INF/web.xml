@@ -87,6 +87,6 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>javax.ws.rs.core.Application</servlet-name>
-        <url-pattern>/default/*</url-pattern>
+        <url-pattern>/application5/*</url-pattern>
     </servlet-mapping>
 </web-app>

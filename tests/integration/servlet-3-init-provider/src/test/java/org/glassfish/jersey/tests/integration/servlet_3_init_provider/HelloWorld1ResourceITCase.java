@@ -39,34 +39,36 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-@Provider
-public class HelloWriter implements MessageBodyWriter<AbstractHelloWorldResource.Hello> {
-    @Override
-    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.equals(AbstractHelloWorldResource.Hello.class);
+public class HelloWorld1ResourceITCase extends AbstractHelloWorldResourceITCase {
+
+    protected Class<?> getResourceClass() {
+        return HelloWorld1Resource.class;
+    }
+
+    protected int getIndex() {
+        return 1;
     }
 
     @Override
-    public long getSize(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return -1;
+    public void testHelloWorld() throws Exception {
+        super.testHelloWorld();
+
+        testRegisteredServletNames();
     }
 
-    @Override
-    public void writeTo(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        String value = String.format("Hello %s!", hello.getName());
-        entityStream.write(value.getBytes());
+    private void testRegisteredServletNames() {
+        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application1"));
+        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("application2"));
+        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("application3"));
+        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application4"));
+        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("javax.ws.rs.core.Application"));
+        Assert.assertEquals(5, TestServletContainerProvider.getServletNames().size());
     }
+
 }

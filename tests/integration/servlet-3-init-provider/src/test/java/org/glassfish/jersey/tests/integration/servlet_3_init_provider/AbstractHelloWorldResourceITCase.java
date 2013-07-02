@@ -48,6 +48,8 @@ import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Test;
 import org.junit.Assert;
 
+import javax.ws.rs.NotFoundException;
+
 /**
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
@@ -65,8 +67,22 @@ public abstract class AbstractHelloWorldResourceITCase extends JerseyTest {
 
     @Test
     public void testHelloWorld() throws Exception {
-        String s = target().path("helloworld" + getIndex()).request().get(String.class);
-        Assert.assertEquals("Hello Wold #" + getIndex() + "!", s);
+        for (int i = 1; i <= 5; i++) {
+            try {
+                String actual = target("application" + getIndex()).path("helloworld" + i).request().get(String.class);
+                if (i == getIndex()) {
+                    Assert.assertEquals("Hello World #" + getIndex() + "!", actual);
+                } else {
+                    Assert.fail("i: " + i + " | [" + actual + "]");
+                }
+            } catch (NotFoundException ex) {
+                if (i != getIndex()) {
+                    Assert.assertEquals(404, ex.getResponse().getStatus());
+                } else {
+                    Assert.fail("!!! i: " + i);
+                }
+            }
+        }
     }
 
     protected abstract Class<?> getResourceClass();

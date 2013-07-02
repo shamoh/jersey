@@ -39,6 +39,9 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
@@ -51,6 +54,9 @@ import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class TestServletContainerProvider implements ServletContainerProvider {
+
+    private static Set<String> servletNames;
+
     @Override
     public void init(ServletContext servletContext) throws ServletException {
         System.out.println("+++");
@@ -68,10 +74,15 @@ public class TestServletContainerProvider implements ServletContainerProvider {
     }
 
     @Override
-    public void registered(ServletContext servletContext, String... strings) throws ServletException {
+    public void registered(ServletContext servletContext, String... servletNames) throws ServletException {
         System.out.println("+++");
         System.out.println("+++");
         System.out.println("+++");
-        System.out.println("+++ TestServletContainerProvider.registered");
+        System.out.println("+++ TestServletContainerProvider.registered: " + servletNames);
+        this.servletNames = new HashSet<String>(Arrays.asList(servletNames));
+    }
+
+    public static Set<String> getServletNames() {
+        return servletNames;
     }
 }
