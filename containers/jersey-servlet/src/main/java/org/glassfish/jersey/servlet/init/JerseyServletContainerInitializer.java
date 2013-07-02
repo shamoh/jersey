@@ -40,6 +40,7 @@
 package org.glassfish.jersey.servlet.init;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,7 +71,8 @@ import org.glassfish.jersey.servlet.init.internal.LocalizationMessages;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import org.glassfish.jersey.servlet.spi.JerseyServletContainerInitializerFactory;
+import org.glassfish.jersey.servlet.internal.ServletContainerProviderFactory;
+import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
 
 /*
  It is RECOMMENDED that implementations support the Servlet 3 framework
@@ -125,56 +127,40 @@ import org.glassfish.jersey.servlet.spi.JerseyServletContainerInitializerFactory
 @HandlesTypes({Path.class, Provider.class, Application.class, ApplicationPath.class})
 public class JerseyServletContainerInitializer implements ServletContainerInitializer {
 
-    private static final Logger LOGGER =
-            Logger.getLogger(JerseyServletContainerInitializer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JerseyServletContainerInitializer.class.getName());
 
     @Override
     public void onStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
-        //
-        // extension point
-        //
-        JerseyServletContainerInitializerFactory jerseyServletContainerInitializerFactory = null;
-        Iterator<JerseyServletContainerInitializerFactory> factoryServiceIterator =
-                ServiceFinder.find(JerseyServletContainerInitializerFactory.class).iterator();
-        if (factoryServiceIterator.hasNext()) {
-            jerseyServletContainerInitializerFactory = factoryServiceIterator.next();
-//            if (factoryServiceIterator.hasNext()) {
-//            throw new XXXException("Too many JerseyServletContainerInitializerFactory implementations!"); //TODO
-//            }
-        } else {
-            jerseyServletContainerInitializerFactory = new DefaultJerseyServletContainerInitializerFactory();
+        System.out.println("@@@ JerseyServletContainerInitializer.onStartup: servletContext= " + servletContext);
+        System.out.println("    # " + servletContext.hashCode());
+
+        if (classes == null) {
+            classes = Collections.emptySet();
+        }
+        final ServletContainerProvider[] allServletContainerProviders = ServletContainerProviderFactory.getAllServletContainerProviders(); //TODO check METAINF lookup is enabled
+
+        for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
+            servletContainerProvider.init(servletContext);
         }
 
-        //
-        // init
-        //
-        boolean ok = jerseyServletContainerInitializerFactory.init(servletContext);
-        if (ok) {
-            if (classes == null) {
-                classes = Collections.emptySet();
-            }
-            classes = jerseyServletContainerInitializerFactory.preOnStartup(classes, servletContext);
-            classes = onStartupImpl(classes, servletContext, jerseyServletContainerInitializerFactory);
-            jerseyServletContainerInitializerFactory.postOnStartup(classes, servletContext);
-        } else {
-            // NOP
-            //TODO logger
+        String[] servletNames = onStartupImpl(classes, servletContext, allServletContainerProviders);
+
+        //TODO collect all ServletContainer servlet registrations and call ServletContainerProvider.registered(String[])
+        for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
+            servletContainerProvider.registered(servletContext, servletNames);
         }
     }
 
-    //
-    // impl
-    //
-
-    private Set<Class<?>> onStartupImpl(Set<Class<?>> classes, ServletContext sc,
-                                        JerseyServletContainerInitializerFactory jerseyServletContainerInitializerFactory)
+    private String[] onStartupImpl(final Set<Class<?>> classes, final ServletContext sc,
+                               final ServletContainerProvider[] allServletContainerProviders)
             throws ServletException {
+        Set<String> servletNames = new HashSet<String>();
         // first see if there are any application classes in the web app
         for (Class<? extends Application> a : getApplicationClasses(classes)) {
             final ServletRegistration appReg = sc.getServletRegistration(a.getName());
 
             if (appReg != null) {
-                addServletWithExistingRegistration(sc, appReg, a, classes, jerseyServletContainerInitializerFactory);
+                addNotNull(servletNames, addServletWithExistingRegistration(sc, appReg, a, classes, allServletContainerProviders));
             } else {
                 // Servlet is not registered with app name or the app name is used to register a different servlet
                 // check if some servlet defines the app in init params
@@ -184,20 +170,22 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
                     // fix the registrations if needed (i.e. add servlet class)
                     for (Registration sr : srs) {
                         if (sr instanceof ServletRegistration) {
-                            addServletWithExistingRegistration(sc, (ServletRegistration) sr, a, classes, jerseyServletContainerInitializerFactory);
+                            addNotNull(servletNames, addServletWithExistingRegistration(sc, (ServletRegistration) sr, a, classes, allServletContainerProviders));
                         }
                     }
                 } else {
                     // app not handled by any servlet/filter -> add it
-                    addServletWithApplication(sc, a, classes, jerseyServletContainerInitializerFactory);
+                    addNotNull(servletNames, addServletWithApplication(sc, a, classes, allServletContainerProviders));
                 }
             }
         }
 
         // check for javax.ws.rs.core.Application registration
-        addServletWithDefaultConfiguration(sc, classes, jerseyServletContainerInitializerFactory);
+        addNotNull(servletNames, addServletWithDefaultConfiguration(sc, classes, allServletContainerProviders));
 
-        return classes;
+        System.out.println("servletNames: " + servletNames);
+
+        return servletNames.toArray(new String[servletNames.size()]);
     }
 
     private List<Registration> getInitParamDeclaredRegistrations(ServletContext sc, Class<? extends Application> a) {
@@ -219,17 +207,32 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
         }
     }
 
-    private void addServletWithDefaultConfiguration(ServletContext sc, Set<Class<?>> classes,
-            JerseyServletContainerInitializerFactory jerseyServletContainerInitializerFactory)
+    /**
+     * Enhance default servlet (named {@link Application}) configuration.
+     *
+     * @param sc
+     * @param classes
+     * @param allServletContainerProviders
+     * @return Servlet name or null if no servlet added
+     * @throws ServletException
+     */
+    private String addServletWithDefaultConfiguration(final ServletContext sc, final Set<Class<?>> classes,
+                                                    final ServletContainerProvider[] allServletContainerProviders)
             throws ServletException {
+        String servletName = null;
         ServletRegistration appReg = sc.getServletRegistration(Application.class.getName());
         if (appReg != null && appReg.getClassName() == null) {
             final Set<Class<?>> appClasses = getRootResourceAndProviderClasses(classes);
-            final ServletContainer s = jerseyServletContainerInitializerFactory.createServletContainer(
-                    ResourceConfig.forApplicationClass(ResourceConfig.class, appClasses).addProperties(getInitParams(appReg))
-                            .addProperties(WebComponent.getContextParams(sc))
-            );
-            appReg = sc.addServlet(appReg.getName(), s);
+            final ResourceConfig resourceConfig = ResourceConfig.forApplicationClass(ResourceConfig.class, appClasses)
+                    .addProperties(getInitParams(appReg))
+                    .addProperties(WebComponent.getContextParams(sc));
+            final ServletContainer s = new ServletContainer(resourceConfig);
+            servletName = appReg.getName();
+            appReg = sc.addServlet(servletName, s);
+            System.out.println("$$$1");
+            System.out.println("$$$1");
+            System.out.println("$$$1");
+            System.out.println("$$$1 " + appReg.getName());
 
             if (appReg.getMappings().isEmpty()) {
                 // Error
@@ -238,18 +241,34 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
                 LOGGER.log(Level.INFO, LocalizationMessages.JERSEY_APP_REGISTERED_CLASSES(appReg.getName(), appClasses));
             }
         }
+        return servletName;
     }
 
-    private void addServletWithApplication(final ServletContext sc,
-            final Class<? extends Application> a, final Set<Class<?>> classes,
-            JerseyServletContainerInitializerFactory jerseyServletContainerInitializerFactory) throws ServletException {
+    /**
+     * Add new servlet according {@link Application} subclass with {@link ApplicationPath} annotation.
+     *
+     * @param sc
+     * @param a
+     * @param classes
+     * @param allServletContainerProviders
+     * @return Servlet name or null if no servlet added
+     * @throws ServletException
+     */
+    private String addServletWithApplication(final ServletContext sc, final Class<? extends Application> a,
+                                           final Set<Class<?>> classes, final ServletContainerProvider[] allServletContainerProviders)
+            throws ServletException {
+        String servletName = null;
         final ApplicationPath ap = a.getAnnotation(ApplicationPath.class);
         if (ap != null) {
             // App is annotated with ApplicationPath
-            final ResourceConfig rc = ResourceConfig.forApplicationClass(a, classes);
-            final ServletContainer s = jerseyServletContainerInitializerFactory.createServletContainer(rc);
-
-            final ServletRegistration.Dynamic dsr = sc.addServlet(a.getName(), s);
+            final ResourceConfig resourceConfig = ResourceConfig.forApplicationClass(a, classes);
+            final ServletContainer s = new ServletContainer(resourceConfig);
+            servletName = a.getName();
+            final ServletRegistration.Dynamic dsr = sc.addServlet(servletName, s);
+            System.out.println("$$$2");
+            System.out.println("$$$2");
+            System.out.println("$$$2");
+            System.out.println("$$$2 " + a.getName());
             dsr.setAsyncSupported(true);
 
             final String mapping = createMappingPath(ap);
@@ -261,18 +280,37 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
                 LOGGER.log(Level.SEVERE, LocalizationMessages.JERSEY_APP_MAPPING_CONFLICT(a.getName(), mapping));
             }
         }
+        return servletName;
     }
 
-    private void addServletWithExistingRegistration(final ServletContext sc, ServletRegistration sr,
-            final Class<? extends Application> a, final Set<Class<?>> classes,
-            JerseyServletContainerInitializerFactory jerseyServletContainerInitializerFactory) throws ServletException {
+    /**
+     * Enhance existing servlet configuration.
+     *
+     * @param sc
+     * @param sr
+     * @param a
+     * @param classes
+     * @param allServletContainerProviders
+     * @return Servlet name or null if no servlet added
+     * @throws ServletException
+     */
+    private String addServletWithExistingRegistration(final ServletContext sc, ServletRegistration sr,
+                                                    final Class<? extends Application> a, final Set<Class<?>> classes,
+                                                    final ServletContainerProvider[] allServletContainerProviders)
+            throws ServletException {
+        String servletName = null;
         if (sr.getClassName() == null) {
             // create a new servlet container for a given app.
-            final ResourceConfig rc = ResourceConfig.forApplicationClass(a, classes).addProperties(getInitParams(sr))
+            final ResourceConfig resourceConfig = ResourceConfig.forApplicationClass(a, classes)
+                    .addProperties(getInitParams(sr))
                     .addProperties(WebComponent.getContextParams(sc));
-            final ServletContainer s = jerseyServletContainerInitializerFactory.createServletContainer(rc);
-
-            ServletRegistration.Dynamic dsr = sc.addServlet(a.getName(), s);
+            final ServletContainer s = new ServletContainer(resourceConfig);
+            servletName = a.getName();
+            ServletRegistration.Dynamic dsr = sc.addServlet(servletName, s);
+            System.out.println("$$$3");
+            System.out.println("$$$3");
+            System.out.println("$$$3");
+            System.out.println("$$$3 " + a.getName());
             dsr.setAsyncSupported(true);
 
             if (dsr.getMappings().isEmpty()) {
@@ -295,6 +333,13 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
             } else {
                 LOGGER.log(Level.INFO, LocalizationMessages.JERSEY_APP_REGISTERED_APPLICATION(a.getName()));
             }
+        }
+        return servletName;
+    }
+
+    private static void addNotNull(Set<String> list, String value) {
+        if (value != null) {
+            list.add(value);
         }
     }
 
@@ -357,31 +402,5 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
 
         return s;
     }
-
-    //
-    // class DefaultJerseyServletContainerInitializerFactory
-    //
-
-    private class DefaultJerseyServletContainerInitializerFactory implements JerseyServletContainerInitializerFactory {
-        @Override
-        public boolean init(ServletContext servletContext) throws ServletException {
-            return true;
-        }
-
-        @Override
-        public Set<Class<?>> preOnStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
-            return classes;
-        }
-
-        @Override
-        public void postOnStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
-            //NOP
-        }
-
-        @Override
-        public ServletContainer createServletContainer(ResourceConfig resourceConfig) {
-            return new ServletContainer(resourceConfig);
-        }
-    } // class DefaultJerseyServletContainerInitializerFactory
 
 }
