@@ -39,33 +39,17 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.external.ExternalTestContainerFactory;
-import org.glassfish.jersey.test.spi.TestContainerException;
-import org.glassfish.jersey.test.spi.TestContainerFactory;
-
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+import javax.ws.rs.Path;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public class HelloWorldResourceITCase extends JerseyTest {
+@Path("helloworld4")
+public class HelloWorld4Resource extends AbstractHelloWorldResource {
 
     @Override
-    protected ResourceConfig configure() {
-        return new ResourceConfig(HelloWorldResource.class);
+    protected String createName() {
+        return "World #4";
     }
 
-    @Override
-    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
-        return new ExternalTestContainerFactory();
-    }
-
-    @Test
-    public void testHelloWorld() throws Exception {
-        String s = target().path("helloworld").request().get(String.class);
-        assertTrue(s.equals("Hello World! " + this.getClass().getPackage().getName()));
-    }
 }

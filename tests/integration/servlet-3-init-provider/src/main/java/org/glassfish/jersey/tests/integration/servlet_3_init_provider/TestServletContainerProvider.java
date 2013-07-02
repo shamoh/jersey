@@ -39,34 +39,39 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * TODO
+ *
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-@Provider
-public class HelloWriter implements MessageBodyWriter<AbstractHelloWorldResource.Hello> {
+public class TestServletContainerProvider implements ServletContainerProvider {
     @Override
-    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.equals(AbstractHelloWorldResource.Hello.class);
+    public void init(ServletContext servletContext) throws ServletException {
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++ TestServletContainerProvider.init");
     }
 
     @Override
-    public long getSize(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return -1;
+    public void configure(ResourceConfig resourceConfig) throws ServletException {
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++ TestServletContainerProvider.configure");
     }
 
     @Override
-    public void writeTo(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        String value = String.format("Hello %s! ", hello.getName());
-        entityStream.write(value.getBytes());
+    public void registered(ServletContext servletContext, String... strings) throws ServletException {
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++");
+        System.out.println("+++ TestServletContainerProvider.registered");
     }
 }

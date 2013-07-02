@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,25 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.jersey.tests.integration.servlet_3_init_5;
+package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.external.ExternalTestContainerFactory;
+import org.glassfish.jersey.test.spi.TestContainerException;
+import org.glassfish.jersey.test.spi.TestContainerFactory;
+
+import org.junit.Test;
+import org.junit.Assert;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-@Path("helloworld")
-public class HelloWorldResource {
+public abstract class AbstractHelloWorldResourceITCase extends JerseyTest {
 
-    @GET
-    @Produces("text/plain")
-    public Hello get() {
-        return new Hello();
+    @Override
+    protected ResourceConfig configure() {
+        return new ResourceConfig(getResourceClass());
     }
 
-    public static class Hello {
-
+    @Override
+    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
+        return new ExternalTestContainerFactory();
     }
+
+    @Test
+    public void testHelloWorld() throws Exception {
+        String s = target().path("helloworld" + getIndex()).request().get(String.class);
+        Assert.assertEquals("Hello Wold #" + getIndex() + "!", s);
+    }
+
+    protected abstract Class<?> getResourceClass();
+
+    protected abstract int getIndex();
+
 }

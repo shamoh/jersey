@@ -39,34 +39,17 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import javax.ws.rs.Path;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-@Provider
-public class HelloWriter implements MessageBodyWriter<AbstractHelloWorldResource.Hello> {
-    @Override
-    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return type.equals(AbstractHelloWorldResource.Hello.class);
-    }
+@Path("helloworld5")
+public class HelloWorld5Resource extends AbstractHelloWorldResource {
 
     @Override
-    public long getSize(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return -1;
+    protected String createName() {
+        return "World #5";
     }
 
-    @Override
-    public void writeTo(AbstractHelloWorldResource.Hello hello, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        String value = String.format("Hello %s! ", hello.getName());
-        entityStream.write(value.getBytes());
-    }
 }
