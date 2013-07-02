@@ -143,7 +143,7 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
             servletContainerProvider.init(servletContext);
         }
 
-        String[] servletNames = onStartupImpl(classes, servletContext, allServletContainerProviders);
+        String[] servletNames = onStartupImpl(classes, servletContext);
 
         //TODO collect all ServletContainer servlet registrations and call ServletContainerProvider.registered(String[])
         for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
@@ -151,47 +151,64 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
         }
     }
 
-    private String[] onStartupImpl(final Set<Class<?>> classes, final ServletContext sc,
-                               final ServletContainerProvider[] allServletContainerProviders)
-            throws ServletException {
+    private String[] onStartupImpl(final Set<Class<?>> classes, final ServletContext servletContext) throws ServletException {
         Set<String> servletNames = new HashSet<String>();
         // first see if there are any application classes in the web app
-        for (Class<? extends Application> a : getApplicationClasses(classes)) {
-            final ServletRegistration appReg = sc.getServletRegistration(a.getName());
+        for (Class<? extends Application> applicationClass : getApplicationClasses(classes)) {
+            final ServletRegistration servletRegistration = servletContext.getServletRegistration(applicationClass.getName());
 
-            if (appReg != null) {
-                addNotNull(servletNames, addServletWithExistingRegistration(sc, appReg, a, classes, allServletContainerProviders));
+            if (servletRegistration != null) {
+                addNotNull(servletNames,
+                        addServletWithExistingRegistration(servletContext, servletRegistration, applicationClass, classes));
             } else {
                 // Servlet is not registered with app name or the app name is used to register a different servlet
                 // check if some servlet defines the app in init params
-                List<Registration> srs = getInitParamDeclaredRegistrations(sc, a);
+                List<Registration> srs = getInitParamDeclaredRegistrations(servletContext, applicationClass);
                 if (!srs.isEmpty()) {
                     // app handled by at least one servlet or filter
                     // fix the registrations if needed (i.e. add servlet class)
                     for (Registration sr : srs) {
                         if (sr instanceof ServletRegistration) {
-                            addNotNull(servletNames, addServletWithExistingRegistration(sc, (ServletRegistration) sr, a, classes, allServletContainerProviders));
+                            addNotNull(servletNames,
+                                    addServletWithExistingRegistration(servletContext, (ServletRegistration) sr, applicationClass, classes));
                         }
                     }
                 } else {
                     // app not handled by any servlet/filter -> add it
-                    addNotNull(servletNames, addServletWithApplication(sc, a, classes, allServletContainerProviders));
+                    addNotNull(servletNames,
+                            addServletWithApplication(servletContext, applicationClass, classes));
                 }
             }
         }
 
         // check for javax.ws.rs.core.Application registration
-        addNotNull(servletNames, addServletWithDefaultConfiguration(sc, classes, allServletContainerProviders));
+        addNotNull(servletNames,
+                addServletWithDefaultConfiguration(servletContext, classes));
+
+        collectJerseyServletNames(servletContext, servletNames);
 
         System.out.println("servletNames: " + servletNames);
 
         return servletNames.toArray(new String[servletNames.size()]);
     }
 
+    private static void collectJerseyServletNames(ServletContext servletContext, Set<String> servletNames) {
+        for (ServletRegistration servletRegistration : servletContext.getServletRegistrations().values()) {
+            if (isJerseyServlet(servletRegistration.getClassName())) {
+                servletNames.add(servletRegistration.getName());
+            }
+        }
+    }
+
+    private static boolean isJerseyServlet(String className) {
+        return ServletContainer.class.getName().equals(className) ||
+                "org.glassfish.jersey.servlet.portability.PortableServletContainer".equals(className);
+    }
+
     private List<Registration> getInitParamDeclaredRegistrations(ServletContext sc, Class<? extends Application> a) {
         final List<Registration> srs = Lists.newArrayList();
         collectJaxRsRegistrations(sc.getServletRegistrations(), srs, a);
-        collectJaxRsRegistrations(sc.getFilterRegistrations(), srs, a);
+        collectJaxRsRegistrations(sc.getFilterRegistrations(), srs, a); //??? LKR: I guess FilterRegistration is not used further
         return srs;
     }
 
@@ -212,12 +229,10 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
      *
      * @param sc
      * @param classes
-     * @param allServletContainerProviders
      * @return Servlet name or null if no servlet added
      * @throws ServletException
      */
-    private String addServletWithDefaultConfiguration(final ServletContext sc, final Set<Class<?>> classes,
-                                                    final ServletContainerProvider[] allServletContainerProviders)
+    private String addServletWithDefaultConfiguration(final ServletContext sc, final Set<Class<?>> classes)
             throws ServletException {
         String servletName = null;
         ServletRegistration appReg = sc.getServletRegistration(Application.class.getName());
@@ -250,12 +265,11 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
      * @param sc
      * @param a
      * @param classes
-     * @param allServletContainerProviders
      * @return Servlet name or null if no servlet added
      * @throws ServletException
      */
     private String addServletWithApplication(final ServletContext sc, final Class<? extends Application> a,
-                                           final Set<Class<?>> classes, final ServletContainerProvider[] allServletContainerProviders)
+                                             final Set<Class<?>> classes)
             throws ServletException {
         String servletName = null;
         final ApplicationPath ap = a.getAnnotation(ApplicationPath.class);
@@ -290,13 +304,11 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
      * @param sr
      * @param a
      * @param classes
-     * @param allServletContainerProviders
      * @return Servlet name or null if no servlet added
      * @throws ServletException
      */
     private String addServletWithExistingRegistration(final ServletContext sc, ServletRegistration sr,
-                                                    final Class<? extends Application> a, final Set<Class<?>> classes,
-                                                    final ServletContainerProvider[] allServletContainerProviders)
+                                                      final Class<? extends Application> a, final Set<Class<?>> classes)
             throws ServletException {
         String servletName = null;
         if (sr.getClassName() == null) {
