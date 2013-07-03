@@ -42,6 +42,8 @@ package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.ws.rs.client.WebTarget;
+
 /**
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
@@ -55,20 +57,21 @@ public class HelloWorld1ResourceITCase extends AbstractHelloWorldResourceITCase 
         return 1;
     }
 
-    @Override
-    public void testHelloWorld() throws Exception {
-        super.testHelloWorld();
+    @Test
+    public void testRegisteredServletNames() throws Exception {
+        WebTarget target = target("application" + getIndex()).path("helloworld" + getIndex()).path("servlets");
+        Assert.assertEquals(5, (int)target.request().get(Integer.TYPE));
 
-        testRegisteredServletNames();
+        target = target.path("{name}");
+        testRegisteredServletNames(target, "org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application1");
+        testRegisteredServletNames(target, "application2");
+        testRegisteredServletNames(target, "application3");
+        testRegisteredServletNames(target, "org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application4");
+        testRegisteredServletNames(target, "javax.ws.rs.core.Application");
     }
 
-    private void testRegisteredServletNames() {
-        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application1"));
-        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("application2"));
-        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("application3"));
-        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("org.glassfish.jersey.tests.integration.servlet_3_init_provider.Application4"));
-        Assert.assertTrue(TestServletContainerProvider.getServletNames().contains("javax.ws.rs.core.Application"));
-        Assert.assertEquals(5, TestServletContainerProvider.getServletNames().size());
+    private void testRegisteredServletNames(WebTarget target, String servletName) throws Exception {
+        Assert.assertTrue(target.resolveTemplate("name", servletName).request().get(Boolean.TYPE));
     }
 
 }

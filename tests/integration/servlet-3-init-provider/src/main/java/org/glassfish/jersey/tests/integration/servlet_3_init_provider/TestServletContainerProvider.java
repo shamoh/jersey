@@ -83,6 +83,7 @@ public class TestServletContainerProvider implements ServletContainerProvider {
     }
 
     public static Set<String> getServletNames() {
+        System.out.println("+++ servletNames: " + servletNames);
         return servletNames;
     }
 }

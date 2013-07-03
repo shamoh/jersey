@@ -39,7 +39,9 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 /**
  * @author Libor Kramolis (libor.kramolis at oracle.com)
@@ -50,6 +52,18 @@ public class HelloWorld1Resource extends AbstractHelloWorldResource {
     @Override
     protected String createName() {
         return "World #1";
+    }
+
+    @GET
+    @Path("servlets")
+    public int getServletsCount() {
+        return TestServletContainerProvider.getServletNames().size();
+    }
+
+    @GET
+    @Path("servlets/{name}")
+    public boolean hasServletName(@PathParam("name") String servletName) {
+        return TestServletContainerProvider.getServletNames().contains(servletName);
     }
 
 }
