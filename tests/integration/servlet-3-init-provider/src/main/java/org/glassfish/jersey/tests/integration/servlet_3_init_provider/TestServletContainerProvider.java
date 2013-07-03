@@ -40,8 +40,10 @@
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
@@ -83,6 +85,9 @@ public class TestServletContainerProvider implements ServletContainerProvider {
         System.out.println("+++");
         System.out.println("+++ TestServletContainerProvider.registered: " + servletNames);
         this.servletNames = new HashSet<String>(Arrays.asList(servletNames));
+
+        servletContext.addFilter("TestFilter", TestFilter.class).
+                addMappingForServletNames(EnumSet.allOf(DispatcherType.class), false, servletNames);
     }
 
     public static Set<String> getServletNames() {

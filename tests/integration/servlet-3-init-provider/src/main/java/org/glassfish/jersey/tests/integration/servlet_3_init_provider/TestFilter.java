@@ -39,26 +39,50 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import org.junit.Assert;
-import org.junit.Test;
+import java.io.IOException;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 /**
+ * TODO
+ *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public class HelloWorld3ResourceITCase extends AbstractHelloWorldResourceITCase {
-
-    protected Class<?> getResourceClass() {
-        return HelloWorld3Resource.class;
+public class TestFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("/// TestFilter.init: " + filterConfig);
     }
 
-    protected int getIndex() {
-        return 3;
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("/// TestFilter.doFilter");
+        System.out.println("///     request: " + request);
+
+        if (((HttpServletRequest)request).getRequestURI().startsWith("/application3")) {
+            System.out.println("<<< " + request);
+            request.setAttribute("FILTER", "TestFilter");
+        }
+
+        chain.doFilter(request, response);
     }
 
-    @Test
-    public void testStartupContainers() throws Exception {
-        String actual = target("application" + getIndex()).path("helloworld" + getIndex()).path("filter").request().get(String.class);
-        Assert.assertEquals("TestFilter", actual);
+    @Override
+    public void destroy() {
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("///");
+        System.out.println("/// TestFilter.destroy");
     }
-
 }

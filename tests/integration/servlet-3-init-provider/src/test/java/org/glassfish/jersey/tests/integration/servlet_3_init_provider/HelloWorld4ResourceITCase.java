@@ -39,6 +39,11 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+
 /**
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
@@ -50,6 +55,12 @@ public class HelloWorld4ResourceITCase extends AbstractHelloWorldResourceITCase 
 
     protected int getIndex() {
         return 4;
+    }
+
+    @Test
+    public void testStartupContainers() throws Exception {
+        Response response = target("application" + getIndex()).path("helloworld" + getIndex()).path("filter").request().get();
+        Assert.assertEquals(404, response.getStatus());
     }
 
 }
