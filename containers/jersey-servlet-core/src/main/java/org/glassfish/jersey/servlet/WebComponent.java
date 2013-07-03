@@ -102,6 +102,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  * @author Jakub Podlesak (jakub.podlesak at oracle.com)
  * @author Marek Potociar (marek.potociar at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class WebComponent {
 
@@ -402,10 +403,10 @@ public class WebComponent {
     /**
      * SPI/extension hook to configure ResourceConfig.
      *
-     * @param resourceConfig
+     * @param resourceConfig Jersey application configuration.
      */
     private static void configure(ResourceConfig resourceConfig) throws ServletException {
-        final ServletContainerProvider[] allServletContainerProviders = //TODO check METAINF lookup is enabled
+        final ServletContainerProvider[] allServletContainerProviders = //TODO check if META-INF/services lookup is enabled
                 ServletContainerProviderFactory.getAllServletContainerProviders();
         for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
             servletContainerProvider.configure(resourceConfig);

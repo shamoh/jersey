@@ -61,7 +61,6 @@ public class HelloWorld3Resource extends AbstractHelloWorldResource {
     @GET
     @Path("filter")
     public String getFilter() {
-        System.out.println(">>> " + request);
         return (String) request.getAttribute("FILTER");
     }
 

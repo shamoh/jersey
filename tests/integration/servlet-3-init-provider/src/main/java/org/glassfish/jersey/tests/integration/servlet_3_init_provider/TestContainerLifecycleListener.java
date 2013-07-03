@@ -39,11 +39,13 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
+import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 
 /**
- * TODO
+ * This is just test purpose implementation of Jersey SPI {@link ContainerLifecycleListener}.
+ * The listener class is registered in {@link TestServletContainerProvider} to {@link ResourceConfig}.
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
@@ -54,26 +56,14 @@ public class TestContainerLifecycleListener implements ContainerLifecycleListene
     @Override
     public void onStartup(Container container) {
         startupCount++;
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("=== TestContainerLifecycleListener.onStartup: startupCount= "+ startupCount);
     }
 
     @Override
     public void onReload(Container container) {
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("=== TestContainerLifecycleListener.onReload");
     }
 
     @Override
     public void onShutdown(Container container) {
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("===");
-        System.out.println("=== TestContainerLifecycleListener.onShutdown");
     }
 
     public static int getStartupCount() {

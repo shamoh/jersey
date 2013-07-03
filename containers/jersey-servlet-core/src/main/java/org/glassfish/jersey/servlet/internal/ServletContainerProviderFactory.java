@@ -46,9 +46,11 @@ import org.glassfish.jersey.internal.ServiceFinder;
 import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
 
 /**
- * TODO
+ * Factory class to get all "registered" implementations of {@link ServletContainerProvider}.
+ * Mentioned implementation classes are registered by {@code META-INF/services}.
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * @since 2.1
  */
 public final class ServletContainerProviderFactory {
 
@@ -58,51 +60,15 @@ public final class ServletContainerProviderFactory {
     }
 
     /**
-     * TODO
+     * Returns array of all "registered" implementations of {@link ServletContainerProvider}.
      *
-     * @return TODO. Never returns null.
-     * @throws ServletException
+     * @return Array of registered providers. Never returns {@code null}.
+     *      If there is no implementation registered empty array is returned.
+     * @todo Instances of ServletContainerProvider could be cached, maybe. ???
+     * @todo Check if META-INF/services lookup is enabled. ???
      */
-    public static ServletContainerProvider[] getAllServletContainerProviders() throws ServletException {
-        ServletContainerProvider[] allServletContainerProviders = ServiceFinder.find(ServletContainerProvider.class).toArray();
-        return allServletContainerProviders;
+    public static ServletContainerProvider[] getAllServletContainerProviders() {
+        return ServiceFinder.find(ServletContainerProvider.class).toArray();
     }
-
-/*
-    public static ServletContainerProvider createServletContainerProvider() throws ServletException {
-        ServletContainerProvider servletContainerProvider = null;
-        Iterator<ServletContainerProvider> factoryServiceIterator =
-                ServiceFinder.find(ServletContainerProvider.class).iterator();
-        if (factoryServiceIterator.hasNext()) {
-            servletContainerProvider = factoryServiceIterator.next();
-            if (factoryServiceIterator.hasNext()) {
-                if (LOGGER.isLoggable(Level.SEVERE)) {
-                    LOGGER.severe(LocalizationMessages.TOO_MANY_SERVLET_CONTAINER_PROVIDERS());
-                    for (; factoryServiceIterator.hasNext(); servletContainerProvider = factoryServiceIterator.next()) {
-                        final String className = servletContainerProvider.getClass().getName();
-                        final String codeSourceLocation = servletContainerProvider.getClass().getProtectionDomain().
-                                getCodeSource().getLocation().toString();
-                        LOGGER.severe(LocalizationMessages.FOUND_SERVLET_CONTAINER_PROVIDER(className, codeSourceLocation));
-                    }
-                }
-                throw new ServletException(LocalizationMessages.EXCEPTION_TOO_MANY_SERVLET_CONTAINER_PROVIDERS());
-            }
-        } else {
-            servletContainerProvider = new DefaultServletContainerProvider();
-        }
-        return servletContainerProvider;
-    }
-
-
-    private static class DefaultServletContainerProvider implements ServletContainerProvider {
-
-        @Override
-        public void configure(ServletContext servletContext, ResourceConfig resourceConfig) throws ServletException {
-            System.out.println("### DefaultServletContainerProvider.configure");
-            //NOP
-        }
-
-    } // class DefaultServletContainerProvider
-*/
 
 }

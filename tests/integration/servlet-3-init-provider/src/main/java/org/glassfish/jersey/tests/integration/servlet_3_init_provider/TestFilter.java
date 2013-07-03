@@ -49,29 +49,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * TODO
+ * This is just test purpose {@link Filter servlet filter} implementation to demonstrate how to register filter for any Jersey Servlet.
+ * The filter class is added in {@link TestServletContainerProvider}.
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class TestFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// TestFilter.init: " + filterConfig);
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// TestFilter.doFilter");
-        System.out.println("///     request: " + request);
-
         if (((HttpServletRequest)request).getRequestURI().startsWith("/application3")) {
-            System.out.println("<<< " + request);
             request.setAttribute("FILTER", "TestFilter");
         }
 
@@ -80,9 +70,5 @@ public class TestFilter implements Filter {
 
     @Override
     public void destroy() {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// TestFilter.destroy");
     }
 }

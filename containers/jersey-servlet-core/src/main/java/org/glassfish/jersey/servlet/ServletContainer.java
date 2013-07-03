@@ -71,8 +71,6 @@ import org.glassfish.jersey.server.internal.ConfigHelper;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.glassfish.jersey.servlet.internal.LocalizationMessages;
-import org.glassfish.jersey.servlet.internal.ServletContainerProviderFactory;
-import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
 import org.glassfish.jersey.uri.UriComponent;
 
 /**
@@ -166,10 +164,6 @@ public class ServletContainer extends HttpServlet implements Filter, Container {
      * @throws javax.servlet.ServletException in case of an initialization failure
      */
     protected void init(WebConfig webConfig) throws ServletException {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// init: webConfig= " + webConfig);
         webComponent = new WebComponent(webConfig, resourceConfig);
         containerListener = ConfigHelper.getContainerLifecycleListener(webComponent.appHandler);
         containerListener.onStartup(this);
@@ -179,10 +173,6 @@ public class ServletContainer extends HttpServlet implements Filter, Container {
      * Create Jersey Servlet container.
      */
     public ServletContainer() {
-        System.out.println("^^^");
-        System.out.println("^^^");
-        System.out.println("^^^");
-        System.out.println("^^^ INIT");
     }
 
     /**
@@ -191,10 +181,6 @@ public class ServletContainer extends HttpServlet implements Filter, Container {
      * @param resourceConfig container configuration.
      */
     public ServletContainer(ResourceConfig resourceConfig) {
-        System.out.println("^^^");
-        System.out.println("^^^");
-        System.out.println("^^^");
-        System.out.println("^^^ INIT: " + resourceConfig);
         this.resourceConfig = resourceConfig;
     }
 
@@ -360,10 +346,6 @@ public class ServletContainer extends HttpServlet implements Filter, Container {
 
     @Override
     public void init() throws ServletException {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// init");
         init(new WebServletConfig(this));
     }
 
@@ -393,10 +375,6 @@ public class ServletContainer extends HttpServlet implements Filter, Container {
     // Filter
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("///");
-        System.out.println("/// init: filterConfig= " + filterConfig);
         this.filterConfig = filterConfig;
         init(new WebFilterConfig(filterConfig));
 

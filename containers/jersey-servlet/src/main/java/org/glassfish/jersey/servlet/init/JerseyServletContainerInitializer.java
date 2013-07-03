@@ -41,7 +41,6 @@ package org.glassfish.jersey.servlet.init;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
 
-import org.glassfish.jersey.internal.ServiceFinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.servlet.ServletProperties;
@@ -131,13 +129,8 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
 
     @Override
     public void onStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
-        System.out.println("@@@ JerseyServletContainerInitializer.onStartup: servletContext= " + servletContext);
-        System.out.println("    # " + servletContext.hashCode());
-
-        if (classes == null) {
-            classes = Collections.emptySet();
-        }
-        final ServletContainerProvider[] allServletContainerProviders = ServletContainerProviderFactory.getAllServletContainerProviders(); //TODO check METAINF lookup is enabled
+        final ServletContainerProvider[] allServletContainerProviders = //TODO check if META-INF/services lookup is enabled
+                ServletContainerProviderFactory.getAllServletContainerProviders();
 
         for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
             servletContainerProvider.init(servletContext);
@@ -145,14 +138,17 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
 
         String[] servletNames = onStartupImpl(classes, servletContext);
 
-        //TODO collect all ServletContainer servlet registrations and call ServletContainerProvider.registered(String[])
         for (ServletContainerProvider servletContainerProvider : allServletContainerProviders) {
             servletContainerProvider.registered(servletContext, servletNames);
         }
     }
 
-    private String[] onStartupImpl(final Set<Class<?>> classes, final ServletContext servletContext) throws ServletException {
+    private String[] onStartupImpl(Set<Class<?>> classes, final ServletContext servletContext) throws ServletException {
         Set<String> servletNames = new HashSet<String>();
+
+        if (classes == null) {
+            classes = Collections.emptySet();
+        }
         // first see if there are any application classes in the web app
         for (Class<? extends Application> applicationClass : getApplicationClasses(classes)) {
             final ServletRegistration servletRegistration = servletContext.getServletRegistration(applicationClass.getName());
@@ -187,11 +183,14 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
 
         collectJerseyServletNames(servletContext, servletNames);
 
-        System.out.println("servletNames: " + servletNames);
-
         return servletNames.toArray(new String[servletNames.size()]);
     }
 
+    /**
+     * Adds all Jersey servlets configured in {@code web.xml} to the set of servlet names ({@code servletNames}).
+     * @param servletContext the {@link ServletContext} of the web application that is being started
+     * @param servletNames set of programmatically registered Jersey servlet names, that will be enhanced
+     */
     private static void collectJerseyServletNames(ServletContext servletContext, Set<String> servletNames) {
         for (ServletRegistration servletRegistration : servletContext.getServletRegistrations().values()) {
             if (isJerseyServlet(servletRegistration.getClassName())) {
@@ -200,6 +199,9 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
         }
     }
 
+    /**
+     * Is {@code className} Jersey's servlet?
+     */
     private static boolean isJerseyServlet(String className) {
         return ServletContainer.class.getName().equals(className) ||
                 "org.glassfish.jersey.servlet.portability.PortableServletContainer".equals(className);
@@ -244,10 +246,7 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
             final ServletContainer s = new ServletContainer(resourceConfig);
             servletName = appReg.getName();
             appReg = sc.addServlet(servletName, s);
-            System.out.println("$$$1");
-            System.out.println("$$$1");
-            System.out.println("$$$1");
-            System.out.println("$$$1 " + appReg.getName());
+            ((ServletRegistration.Dynamic) appReg).setLoadOnStartup(1);
 
             if (appReg.getMappings().isEmpty()) {
                 // Error
@@ -279,11 +278,8 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
             final ServletContainer s = new ServletContainer(resourceConfig);
             servletName = a.getName();
             final ServletRegistration.Dynamic dsr = sc.addServlet(servletName, s);
-            System.out.println("$$$2");
-            System.out.println("$$$2");
-            System.out.println("$$$2");
-            System.out.println("$$$2 " + a.getName());
             dsr.setAsyncSupported(true);
+            dsr.setLoadOnStartup(1);
 
             final String mapping = createMappingPath(ap);
             if (!mappingExists(sc, mapping)) {
@@ -318,12 +314,9 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
                     .addProperties(WebComponent.getContextParams(sc));
             final ServletContainer s = new ServletContainer(resourceConfig);
             servletName = a.getName();
-            ServletRegistration.Dynamic dsr = sc.addServlet(servletName, s);
-            System.out.println("$$$3");
-            System.out.println("$$$3");
-            System.out.println("$$$3");
-            System.out.println("$$$3 " + a.getName());
+            final ServletRegistration.Dynamic dsr = sc.addServlet(servletName, s);
             dsr.setAsyncSupported(true);
+            dsr.setLoadOnStartup(1);
 
             if (dsr.getMappings().isEmpty()) {
                 final ApplicationPath ap = a.getAnnotation(ApplicationPath.class);
@@ -349,6 +342,9 @@ public class JerseyServletContainerInitializer implements ServletContainerInitia
         return servletName;
     }
 
+    /**
+     * Add {@code value} to the {@code list} if the value is NOT {@code null}.
+     */
     private static void addNotNull(Set<String> list, String value) {
         if (value != null) {
             list.add(value);

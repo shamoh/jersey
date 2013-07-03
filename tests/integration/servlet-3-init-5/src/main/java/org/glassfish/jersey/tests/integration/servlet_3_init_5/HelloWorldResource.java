@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,6 +45,7 @@ import javax.ws.rs.Produces;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 @Path("helloworld")
 public class HelloWorldResource {

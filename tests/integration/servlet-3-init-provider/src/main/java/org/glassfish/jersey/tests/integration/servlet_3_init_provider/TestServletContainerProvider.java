@@ -51,7 +51,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.internal.spi.ServletContainerProvider;
 
 /**
- * TODO
+ * This is just test purpose implementation of Jersey internal SPI {@link ServletContainerProvider}.
+ * The provider class is registered via {@code META-INF/services}.
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
@@ -61,18 +62,10 @@ public class TestServletContainerProvider implements ServletContainerProvider {
 
     @Override
     public void init(ServletContext servletContext) throws ServletException {
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++ TestServletContainerProvider.init");
     }
 
     @Override
     public void configure(ResourceConfig resourceConfig) throws ServletException {
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++ TestServletContainerProvider.configure");
         if (!resourceConfig.isRegistered(TestContainerLifecycleListener.class)) {
             resourceConfig.register(TestContainerLifecycleListener.class);
         }
@@ -80,10 +73,6 @@ public class TestServletContainerProvider implements ServletContainerProvider {
 
     @Override
     public void registered(ServletContext servletContext, String... servletNames) throws ServletException {
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++");
-        System.out.println("+++ TestServletContainerProvider.registered: " + servletNames);
         this.servletNames = new HashSet<String>(Arrays.asList(servletNames));
 
         servletContext.addFilter("TestFilter", TestFilter.class).
@@ -91,7 +80,6 @@ public class TestServletContainerProvider implements ServletContainerProvider {
     }
 
     public static Set<String> getServletNames() {
-        System.out.println("+++ servletNames: " + servletNames);
         return servletNames;
     }
 

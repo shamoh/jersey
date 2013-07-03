@@ -51,6 +51,7 @@ import java.lang.reflect.Type;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 @Provider
 public class HelloWriter implements MessageBodyWriter<AbstractHelloWorldResource.Hello> {

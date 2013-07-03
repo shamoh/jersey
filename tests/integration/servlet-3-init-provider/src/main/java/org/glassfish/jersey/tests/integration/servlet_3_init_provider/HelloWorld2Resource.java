@@ -56,10 +56,6 @@ public class HelloWorld2Resource extends AbstractHelloWorldResource {
     @GET
     @Path("containers")
     public int getContainersCount() {
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!");
-        System.out.println("!!! getContainersCount");
         return TestContainerLifecycleListener.getStartupCount();
     }
 
