@@ -39,28 +39,45 @@
  */
 package org.glassfish.jersey.tests.integration.servlet_3_init_provider;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.ws.rs.client.WebTarget;
+import org.glassfish.jersey.server.spi.Container;
+import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 
 /**
+ * TODO
+ *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public class HelloWorld2ResourceITCase extends AbstractHelloWorldResourceITCase {
+public class TestContainerLifecycleListener implements ContainerLifecycleListener {
 
-    protected Class<?> getResourceClass() {
-        return HelloWorld2Resource.class;
+    private static int startupCount = 0;
+
+    @Override
+    public void onStartup(Container container) {
+        startupCount++;
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("=== TestContainerLifecycleListener.onStartup: startupCount= "+ startupCount);
     }
 
-    protected int getIndex() {
-        return 2;
+    @Override
+    public void onReload(Container container) {
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("=== TestContainerLifecycleListener.onReload");
     }
 
-    @Test
-    public void testStartupContainers() throws Exception {
-        WebTarget target = target("application" + getIndex()).path("helloworld" + getIndex()).path("containers");
-        Assert.assertEquals(5, (int) target.request().get(Integer.TYPE));
+    @Override
+    public void onShutdown(Container container) {
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("===");
+        System.out.println("=== TestContainerLifecycleListener.onShutdown");
+    }
+
+    public static int getStartupCount() {
+        return startupCount;
     }
 
 }

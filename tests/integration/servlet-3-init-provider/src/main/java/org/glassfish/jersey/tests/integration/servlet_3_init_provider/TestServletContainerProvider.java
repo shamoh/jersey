@@ -71,6 +71,9 @@ public class TestServletContainerProvider implements ServletContainerProvider {
         System.out.println("+++");
         System.out.println("+++");
         System.out.println("+++ TestServletContainerProvider.configure");
+        if (!resourceConfig.isRegistered(TestContainerLifecycleListener.class)) {
+            resourceConfig.register(TestContainerLifecycleListener.class);
+        }
     }
 
     @Override
@@ -86,4 +89,5 @@ public class TestServletContainerProvider implements ServletContainerProvider {
         System.out.println("+++ servletNames: " + servletNames);
         return servletNames;
     }
+
 }
