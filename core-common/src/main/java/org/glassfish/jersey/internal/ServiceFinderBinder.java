@@ -39,7 +39,12 @@
  */
 package org.glassfish.jersey.internal;
 
+import java.util.Map;
+
+import javax.ws.rs.RuntimeType;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.internal.util.PropertiesProvider;
 
 /**
  * Simple ServiceFinder injection binder.
@@ -49,24 +54,33 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  *
  * @param <T> contract type.
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class ServiceFinderBinder<T> extends AbstractBinder {
 
     private final Class<T> contract;
+
+    private final Map<String, Object> applicationProperties;
+
+    private final RuntimeType runtimeType;
 
     /**
      * Create a new service finder injection binder.
      *
      * @param contract contract of the service providers bound by this binder.
      */
-    public ServiceFinderBinder(Class<T> contract) {
+    public ServiceFinderBinder(Class<T> contract, Map<String, Object> applicationProperties, RuntimeType runtimeType) {
         this.contract = contract;
+        this.applicationProperties = applicationProperties;
+        this.runtimeType = runtimeType;
     }
 
     @Override
     public void configure() {
-        for (T t : ServiceFinder.find(contract, true)) {
-            bind(t).to(contract);
+        if (PropertiesProvider.isMetainfServicesLookupEnabled(applicationProperties, runtimeType)) {
+            for (T t : ServiceFinder.find(contract, true)) {
+                bind(t).to(contract);
+            }
         }
     }
 }

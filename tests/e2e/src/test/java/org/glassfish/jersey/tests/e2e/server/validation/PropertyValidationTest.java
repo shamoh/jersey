@@ -75,7 +75,6 @@ public class PropertyValidationTest {
         @POST
         @NotNull
         public String post(final String value) {
-//            System.out.println("value: " + value);
             return value.isEmpty() ? null : value;
         }
     }
@@ -172,9 +171,6 @@ public class PropertyValidationTest {
 
     private void _test(final int responseStatus, final Boolean disableValidation,
                        final Boolean disableAutoDiscovery, final boolean registerFeature) throws Exception {
-        boolean disableMetainfServicesLookup = true;
-//        System.out.println("disableMetainfServicesLookup: " + disableMetainfServicesLookup);
-
         final URI uri = URI.create("/");
 
         assertApply(responseStatus, initResourceConfig(disableValidation, disableAutoDiscovery, registerFeature), uri);
@@ -182,7 +178,7 @@ public class PropertyValidationTest {
         if ( responseStatus == 500) {
             // validation works - environment is validation friendly -> let's try to disable META-INF/services lookup
             final ResourceConfig resourceConfig = initResourceConfig(disableValidation, disableAutoDiscovery, true);
-            resourceConfig.property(ServerProperties.METAINF_SERVICES_LOOKUP_DISABLE, Boolean.TRUE);
+            resourceConfig.property(ServerProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
 
             assertApply(500, resourceConfig, uri);
         }
@@ -205,8 +201,6 @@ public class PropertyValidationTest {
     }
 
     private void assertApply(int responseStatus, ResourceConfig resourceConfig, URI uri) throws InterruptedException, ExecutionException {
-//        System.out.println("assertApply: responseStatus= " + responseStatus);
-
         final ApplicationHandler applicationHandler = new ApplicationHandler(resourceConfig);
         final ContainerRequest requestContext = new ContainerRequest(uri, uri, "POST", null, new MapPropertiesDelegate());
         final ContainerResponse containerResponse = applicationHandler.apply(requestContext).get();

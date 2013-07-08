@@ -39,6 +39,8 @@
  */
 package org.glassfish.jersey.client;
 
+import java.util.Map;
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.ext.MessageBodyReader;
 
@@ -70,12 +72,14 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
  * @author Jakub Podlesak (jakub.podlesak at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 class ClientBinder extends AbstractBinder {
 
-    /** Enable/disable META-INF/services lookup.
-     * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
-    private final boolean disableMetainfServicesLookup;
+    private final RuntimeType runtimeType;
+
+    private final Map<String, Object> applicationProperties;
+
 
     private static class RequestContextInjectionFactory extends ReferencingFactory<ClientRequest> {
         @Inject
@@ -104,8 +108,9 @@ class ClientBinder extends AbstractBinder {
     }
 
 
-    ClientBinder(boolean disableMetainfServicesLookup) {
-        this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+    ClientBinder(Map<String, Object> applicationProperties, RuntimeType runtimeType) {
+        this.applicationProperties = applicationProperties;
+        this.runtimeType = runtimeType;
     }
 
     @Override
@@ -114,15 +119,12 @@ class ClientBinder extends AbstractBinder {
                 new JerseyErrorService.Binder(),
                 new ContextInjectionResolver.Binder(),
                 new JerseyClassAnalyzer.Binder(),
-                new MessagingBinders.MessageBodyProviders(disableMetainfServicesLookup),
+                new MessagingBinders.MessageBodyProviders(applicationProperties, runtimeType),
                 new MessagingBinders.HeaderDelegateProviders(),
                 new MessageBodyFactory.Binder(),
                 new ContextResolverFactory.Binder(),
-                new JaxrsProviders.Binder());
-        //??? is original order of Binder instances in install method above important?!!!
-        if ( disableMetainfServicesLookup == false ) {
-            install(new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class));
-        }
+                new JaxrsProviders.Binder(),
+                new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class, applicationProperties, runtimeType));
 
         bindFactory(ReferencingFactory.<ClientConfig>referenceFactory()).to(new TypeLiteral<Ref<ClientConfig>>() {
         }).in(RequestScoped.class);

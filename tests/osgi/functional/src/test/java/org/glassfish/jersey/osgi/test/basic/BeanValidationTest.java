@@ -147,7 +147,6 @@ public class BeanValidationTest {
                 request().
                 post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), String.class);
 
-//        System.out.println("RESULT = " + entity);
         assertEquals(formValue, entity);
 
         final Response response = client.
@@ -156,7 +155,6 @@ public class BeanValidationTest {
                 request().
                 post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-//        System.out.println("HTTP RESULT = " + response.getStatus());
         assertEquals(expectedResponseCode, response.getStatus());
 
         server.stop();

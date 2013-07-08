@@ -51,6 +51,7 @@ import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -128,7 +129,7 @@ public abstract class JerseyTest {
      */
     public JerseyTest() throws TestContainerException {
         ResourceConfig config = getResourceConfig(configure());
-        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class));
+        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class, null, RuntimeType.SERVER));
 
         if (isLogRecordingEnabled()) {
             registerLogHandler();
@@ -156,7 +157,7 @@ public abstract class JerseyTest {
         setTestContainerFactory(testContainerFactory);
 
         ResourceConfig config = getResourceConfig(configure());
-        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class));
+        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class, null, RuntimeType.SERVER));
         if (isLogRecordingEnabled()) {
             registerLogHandler();
         }
@@ -185,7 +186,7 @@ public abstract class JerseyTest {
      */
     public JerseyTest(Application jaxrsApplication) throws TestContainerException {
         ResourceConfig config = getResourceConfig(jaxrsApplication);
-        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class));
+        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class, null, RuntimeType.SERVER));
         if (isLogRecordingEnabled()) {
             registerLogHandler();
         }
@@ -209,7 +210,7 @@ public abstract class JerseyTest {
      */
     public JerseyTest(Class<? extends Application> jaxrsApplicationClass) throws TestContainerException {
         ResourceConfig config = ResourceConfig.forApplicationClass(jaxrsApplicationClass);
-        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class));
+        config.register(new ServiceFinderBinder<TestContainerFactory>(TestContainerFactory.class, null, RuntimeType.SERVER));
         if (isLogRecordingEnabled()) {
             registerLogHandler();
         }

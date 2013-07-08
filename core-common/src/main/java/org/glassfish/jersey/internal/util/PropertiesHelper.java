@@ -42,6 +42,7 @@ package org.glassfish.jersey.internal.util;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.ws.rs.RuntimeType;
 
@@ -52,6 +53,8 @@ import javax.ws.rs.RuntimeType;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class PropertiesHelper {
+
+    private static final Logger LOGGER = Logger.getLogger(PropertiesHelper.class.getName());
 
     /**
      * Return value of a specified property. If the property is not set or the real value type is not compatible with

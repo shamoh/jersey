@@ -39,6 +39,8 @@
  */
 package org.glassfish.jersey.server;
 
+import java.util.Map;
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -88,13 +90,14 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  * Server injection binder.
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
- * @todo Move this class to the internal package
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
+ * @todo Move this class to the internal package???
  */
 public class ServerBinder extends AbstractBinder {
 
-    /** Enable/disable META-INF/services lookup.
-     * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
-    private final boolean disableMetainfServicesLookup;
+    private final RuntimeType runtimeType;
+
+    private final Map<String, Object> applicationProperties;
 
     private static class RequestContextInjectionFactory extends ReferencingFactory<ContainerRequest> {
         @Inject
@@ -109,8 +112,9 @@ public class ServerBinder extends AbstractBinder {
         }
     }
 
-    public ServerBinder(boolean disableMetainfServicesLookup) {
-        this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+    public ServerBinder(Map<String, Object> applicationProperties, RuntimeType runtimeType) {
+        this.applicationProperties = applicationProperties;
+        this.runtimeType = runtimeType;
     }
 
     @Override
@@ -121,7 +125,7 @@ public class ServerBinder extends AbstractBinder {
                 new ContextInjectionResolver.Binder(),
                 new ParameterInjectionBinder(),
                 new JerseyClassAnalyzer.Binder(),
-                new MessagingBinders.MessageBodyProviders(disableMetainfServicesLookup),
+                new MessagingBinders.MessageBodyProviders(applicationProperties, runtimeType),
                 new MessageBodyFactory.Binder(),
                 new ExceptionMapperFactory.Binder(),
                 new ContextResolverFactory.Binder(),
@@ -131,15 +135,11 @@ public class ServerBinder extends AbstractBinder {
                 new ResourceModelBinder(),
                 new RuntimeExecutorsBinder(),
                 new RouterBinder(),
+                new ServiceFinderBinder<ContainerProvider>(ContainerProvider.class, applicationProperties, runtimeType),
                 new CloseableServiceBinder(),
                 new JerseyResourceContext.Binder(),
+                new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class, applicationProperties, runtimeType),
                 new MappableExceptionWrapperInterceptor.Binder());
-        //??? is original order of Binder instances in install method above important?!!!
-        if ( disableMetainfServicesLookup == false ) {
-            install(new ServiceFinderBinder<ContainerProvider>(ContainerProvider.class),
-                    new ServiceFinderBinder<AutoDiscoverable>(AutoDiscoverable.class));
-
-        }
 
         // Request/Response injection interfaces
         bindFactory(ReferencingFactory.<Request>referenceFactory()).to(new TypeLiteral<Ref<Request>>() {

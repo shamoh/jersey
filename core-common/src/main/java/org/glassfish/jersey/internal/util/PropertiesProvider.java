@@ -37,33 +37,41 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.jersey.tests.e2e.server;
+package org.glassfish.jersey.internal.util;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
-import org.junit.Test;
+import java.util.Map;
+import javax.ws.rs.RuntimeType;
 
-import javax.ws.rs.core.Application;
+import org.glassfish.jersey.CommonProperties;
 
 /**
- * Property {@link ServerProperties#METAINF_SERVICES_LOOKUP_DISABLE} IS set.
+ * TODO
  *
  * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
-public class MetainfServicesLookupDisabledTest extends AbstractDisableMetainfServicesLookupTest {
+public class PropertiesProvider {
 
-    @Test
-    public void testGet() throws Exception {
-        testGet(500, 415);
+    /** Default value of property {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
+    public static final boolean METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT = false;
+
+    private PropertiesProvider() {
     }
 
-
-    @Override
-    protected Application configure() {
-        ResourceConfig resourceConfig = (ResourceConfig)super.configure();
-        resourceConfig.property(ServerProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
-
-        return resourceConfig;
+    /**
+     * Is enabled META-INF/services lookup?
+     *
+     * @param applicationProperties {@link javax.ws.rs.core.Application#getProperties() Application properties}.
+     *     Can be {@code null}, then default value is used.
+     * @return value from application properties or default value
+     * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}.
+     */
+    public static boolean isMetainfServicesLookupEnabled(Map<String, Object> applicationProperties, RuntimeType runtimeType) {
+        boolean enableMetainfServicesLookup = ! METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT;
+        if (applicationProperties != null) {
+            enableMetainfServicesLookup = ! PropertiesHelper.getValue(applicationProperties, runtimeType,
+                    CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, METAINF_SERVICES_LOOKUP_DISABLE_DEFAULT, Boolean.class);
+        }
+        return enableMetainfServicesLookup;
     }
 
 }

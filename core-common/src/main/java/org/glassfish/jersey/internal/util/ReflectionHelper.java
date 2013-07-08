@@ -269,8 +269,8 @@ public class ReflectionHelper {
      * @param name the class name.
      * @param cl   the class loader to use, if null then the defining class loader
      *             of this class will be utilized.
-     * @return the Class, otherwise null if the class cannot be found.
-     * @throws ClassNotFoundException if the class cannot be found.
+     * @return the {@code Class} object for the class with the specified name
+     * @throws ClassNotFoundException if the class cannot be located
      */
     @SuppressWarnings("unchecked")
     public static <T> Class<T> classForNameWithException(String name, ClassLoader cl)

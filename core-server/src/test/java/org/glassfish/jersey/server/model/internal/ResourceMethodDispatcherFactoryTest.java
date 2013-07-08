@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.ExecutionException;
 
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -69,7 +70,7 @@ public class ResourceMethodDispatcherFactoryTest {
 
     @Before
     public void setupApplication() {
-        ServiceLocator locator = Injections.createLocator(new ServerBinder(false));
+        ServiceLocator locator = Injections.createLocator(new ServerBinder(null, RuntimeType.SERVER));
 
         rmdf = locator.getService(ResourceMethodDispatcherFactory.class);
         rmihf = locator.getService(ResourceMethodInvocationHandlerFactory.class);

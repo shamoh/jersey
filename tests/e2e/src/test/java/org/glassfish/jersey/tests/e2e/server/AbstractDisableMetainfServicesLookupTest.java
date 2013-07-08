@@ -45,7 +45,12 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 
 import javax.inject.Singleton;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -71,9 +76,6 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
             Response response = target("/").path(name).request().get();
             UselessMessage entity = response.readEntity(UselessMessage.class);
 
-//            System.out.println("> " + response.getStatus());
-//            System.out.println("entity: " + entity);
-
             Assert.assertEquals(expectedGetResponseCode, response.getStatus());
             if ( entity != null ) {
                 Assert.assertEquals("Hello " + name, entity.getMessage());
@@ -84,9 +86,6 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
             Response response = target("/").request().post(uselessMessageEntity);
             String entity = response.readEntity(String.class);
 
-//            System.out.println("> " + response.getStatus());
-//            System.out.println("entity: " + entity);
-
             Assert.assertEquals(expectedPostResponseCode, response.getStatus());
             if ( entity.length() > 0 ) {
                 Assert.assertEquals(name, entity);
@@ -95,10 +94,6 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
     }
 
 
-    //
-    // JerseyTest
-    //
-
     @Override
     protected Application configure() {
         ResourceConfig resourceConfig = new ResourceConfig(Resource.class);
@@ -106,10 +101,6 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
         return resourceConfig;
     }
 
-
-    //
-    // class Resource
-    //
 
     @Path("/")
     @Produces("text/plain")
@@ -121,20 +112,15 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
         public UselessMessage get(@PathParam("name") final String name) {
             UselessMessage result = new UselessMessage();
             result.setMessage("Hello " + name);
-//            System.out.println("<< " + result);
             return result;
         }
         @POST
         public String post(final UselessMessage message) {
-//            System.out.println(">> " + message.getMessage());
             return message.getMessage();
         }
 
     } // class Resource
 
-    //
-    // class UselessMessageBodyWriter
-    //
 
     /**
      * META-INF/services/javax.ws.rs.ext.MessageBodyReader OR META-INF/services/javax.ws.rs.ext.MessageBodyWriter :
@@ -146,12 +132,10 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
     public static class UselessMessageProvider extends AbstractMessageReaderWriterProvider<UselessMessage> {
 
         public UselessMessageProvider() {
-//            System.out.println("*** UselessMessageProvider ***");
         }
 
         @Override
         public boolean isReadable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
-//            System.out.println("--- isReadable ---");
             return type == UselessMessage.class;
         }
 
@@ -163,19 +147,16 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
                 MediaType mediaType,
                 MultivaluedMap<String, String> httpHeaders,
                 InputStream entityStream) throws IOException {
-//            System.out.println("--- readFrom ---");
             return new UselessMessage(readFromAsString(entityStream, mediaType));
         }
 
         @Override
         public boolean isWriteable(Class<?> type, Type genericType, Annotation annotations[], MediaType mediaType) {
-//            System.out.println("--- isWriteable ---");
             return type == UselessMessage.class;
         }
 
         @Override
         public long getSize(UselessMessage s, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-//            System.out.println("--- getSize ---");
             return s.getMessage().length();
         }
 
@@ -188,25 +169,19 @@ public abstract class AbstractDisableMetainfServicesLookupTest extends JerseyTes
                 MediaType mediaType,
                 MultivaluedMap<String, Object> httpHeaders,
                 OutputStream entityStream) throws IOException {
-//            System.out.println("--- writeTo ---");
             writeToAsString(t.getMessage(), entityStream, mediaType);
         }
     } // class UselessMessageBodyWriter
 
-    //
-    // class UselessMessage
-    //
 
     public static class UselessMessage {
 
         private String message;
 
         public UselessMessage() {
-//            System.out.println("*** UselessMessage ***");
         }
 
         public UselessMessage(String message) {
-//            System.out.println("*** UselessMessage *** :: " + message);
             this.message = message;
         }
 

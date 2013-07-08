@@ -123,7 +123,7 @@ import static junit.framework.Assert.assertTrue;
  * @author mh124079
  * @author Michal Gajdos (michal.gajdos at oracle.com)
  * @author Miroslav Fuksa (miroslav.fuksa at oracle.com)
- *
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({WadlResourceTest.Wadl1Test.class, WadlResourceTest.Wadl2Test.class, WadlResourceTest.Wadl3Test.class,
@@ -1351,9 +1351,6 @@ public class WadlResourceTest {
         }
     }
 
-    //
-    // class Wadl9Test
-    //
 
     /**
      * Tests usage of property {@link ServerProperties#METAINF_SERVICES_LOOKUP_DISABLE}.

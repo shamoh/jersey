@@ -71,6 +71,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class ClientConfig implements Configurable<ClientConfig>, Configuration {
     /**
@@ -348,11 +349,8 @@ public class ClientConfig implements Configurable<ClientConfig>, Configuration {
 
             final CommonConfig runtimeConfig = new CommonConfig(this.commonConfig);
 
-            // ServiceFinderBinder
-            boolean disableMetainfServicesLookup = PropertiesHelper.getValue(runtimeConfig.getProperties(), RuntimeType.CLIENT,
-                    CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, Boolean.FALSE, Boolean.class);
-
-            final ServiceLocator locator = Injections.createLocator(new ClientBinder(disableMetainfServicesLookup));
+            final ServiceLocator locator = Injections.createLocator(
+                    new ClientBinder(runtimeConfig.getProperties(), RuntimeType.CLIENT));
             locator.setDefaultClassAnalyzerName(JerseyClassAnalyzer.NAME);
 
             // AutoDiscoverable.

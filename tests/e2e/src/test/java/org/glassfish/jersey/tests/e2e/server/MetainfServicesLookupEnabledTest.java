@@ -39,10 +39,7 @@
  */
 package org.glassfish.jersey.tests.e2e.server;
 
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
-
-import javax.ws.rs.core.Application;
 
 /**
  * Property {@link org.glassfish.jersey.server.ServerProperties#METAINF_SERVICES_LOOKUP_DISABLE} is NOT set.

@@ -40,8 +40,10 @@
 package org.glassfish.jersey.message.internal;
 
 
+import java.util.Map;
 import javax.inject.Singleton;
 
+import javax.ws.rs.RuntimeType;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -60,6 +62,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
  * writers, header delegates).
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
+ * @author Libor Kramolis (libor.kramolis at oracle.com)
  */
 public class MessagingBinders {
 
@@ -68,12 +71,13 @@ public class MessagingBinders {
      */
     public static class MessageBodyProviders extends AbstractBinder {
 
-        /** Enable/disable META-INF/services lookup.
-         * @see {@link org.glassfish.jersey.CommonProperties#METAINF_SERVICES_LOOKUP_DISABLE}. */
-        private boolean disableMetainfServicesLookup;
+        private final Map<String, Object> applicationProperties;
 
-        public MessageBodyProviders(boolean disableMetainfServicesLookup) {
-            this.disableMetainfServicesLookup = disableMetainfServicesLookup;
+        private final RuntimeType runtimeType;
+
+        public MessageBodyProviders(Map<String, Object> applicationProperties, RuntimeType runtimeType) {
+            this.applicationProperties = applicationProperties;
+            this.runtimeType = runtimeType;
         }
 
         @Override
@@ -115,22 +119,18 @@ public class MessagingBinders {
              * TODO: com.sun.jersey.core.impl.provider.entity.EntityHolderReader
              */
 
+            install(new ServiceFinderBinder<MessageBodyReader>(MessageBodyReader.class, applicationProperties, runtimeType));
             // Message body writers
             bind(StreamingOutputProvider.class).to(MessageBodyWriter.class).in(Singleton.class);
             bind(SourceProvider.SourceWriter.class).to(MessageBodyWriter.class).in(Singleton.class);
+            install(new ServiceFinderBinder<MessageBodyWriter>(MessageBodyWriter.class, applicationProperties, runtimeType));
+            install(new ServiceFinderBinder<HeaderDelegateProvider>(HeaderDelegateProvider.class, applicationProperties, runtimeType));
 
             // XML factory injection points
             bindFactory(DocumentBuilderFactoryInjectionProvider.class).to(DocumentBuilderFactory.class).in(PerThread.class);
             bindFactory(SaxParserFactoryInjectionProvider.class).to(SAXParserFactory.class).in(PerThread.class);
             bindFactory(XmlInputFactoryInjectionProvider.class).to(XMLInputFactory.class).in(PerThread.class);
             bindFactory(TransformerFactoryInjectionProvider.class).to(TransformerFactory.class).in(PerThread.class);
-
-            //??? is original order of Binder instances in install method above important?!!!
-            if ( disableMetainfServicesLookup == false ) {
-                install(new ServiceFinderBinder<MessageBodyReader>(MessageBodyReader.class),
-                        new ServiceFinderBinder<MessageBodyWriter>(MessageBodyWriter.class),
-                        new ServiceFinderBinder<HeaderDelegateProvider>(HeaderDelegateProvider.class));
-            }
         }
 
         private <T extends MessageBodyReader & MessageBodyWriter> void bindSingletonWorker(Class<T> worker) {

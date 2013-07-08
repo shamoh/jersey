@@ -604,11 +604,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
                 Class<T> tClass = ReflectionHelper.classForNameWithException(cn, loader);
 
                 if (LOGGER.isLoggable(Level.FINEST)) {
-                    String className = null;
-                    if (tClass != null) {
-                        className = tClass.getName();
-                    }
-                    LOGGER.log(Level.FINEST, LocalizationMessages.LOADING_NEXT_CLASS(className));
+                    LOGGER.log(Level.FINEST, "Loading next class: " + tClass.getName());
                 }
 
                 return tClass;
@@ -733,11 +729,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
             }
             nextName = null;
             if (LOGGER.isLoggable(Level.FINEST)) {
-                String className = null;
-                if (t != null) {
-                    className = t.getClass().getName();
-                }
-                LOGGER.log(Level.FINEST, LocalizationMessages.LOADING_NEXT_OBJECT(className));
+                LOGGER.log(Level.FINEST, "Loading next object: " + t.getClass().getName());
             }
             return t;
         }
